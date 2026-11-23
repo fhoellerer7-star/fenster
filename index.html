@@ -388,52 +388,72 @@
   .ov-item.part { background: #fef3c7; border-color: #d97706; color: #78350f; }
   .ov-item.current { outline: 3px solid #2563eb; }
 
+
+  .severity-options { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+  .severity-btn { background:#fff; border:3px solid #cbd5e1; border-radius:12px; padding:17px 6px; font-size:16px; font-weight:800; cursor:pointer; color:#111827; }
+  .severity-btn.selected-none { background:#dcfce7; border-color:#16a34a; color:#166534; }
+  .severity-btn.selected-light { background:#fef9c3; border-color:#eab308; color:#854d0e; }
+  .severity-btn.selected-heavy { background:#ffedd5; border-color:#ea580c; color:#9a3412; }
+  .severity-btn.selected-danger { background:#fee2e2; border-color:#dc2626; color:#991b1b; }
+  @media(max-width:640px) { .severity-options {grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px;} .severity-btn {font-size:13px; padding:13px 4px;} }
+
   #printArea { display: none; }
+  @page { size: A4 portrait; margin: 0; }
+  /* Nullrand unterdrückt in vielen Browsern automatische Druck-Kopf-/Fußzeilen. */
   @media print {
-    body { background: #fff; padding: 0; margin: 0; }
+    html, body { margin: 0 !important; padding: 0 !important; background: white !important; }
     .topbar, .container, .bottom-nav, .modal-bg { display: none !important; }
     #printArea { display: block !important; }
-    .print-page {
-      page-break-after: always;
-      padding: 8mm;
-      font-size: 10pt;
-      color: #000;
+    #printArea, #printArea * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    .report-page {
+      width: 210mm; height: 297mm; margin: 0; padding: 10mm;
+      display: flex; flex-direction: column; color: #172033;
+      font-family: Arial, Helvetica, sans-serif; font-size: 9pt;
+      break-after: page; page-break-after: always; overflow: hidden;
     }
-    .print-page:last-child { page-break-after: auto; }
-    table.p-tbl {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 6px;
-    }
-    table.p-tbl th, table.p-tbl td {
-      border: 1px solid #333;
-      padding: 4px 6px;
-      text-align: left;
-      vertical-align: top;
-    }
-    table.p-tbl th { background: #e2e8f0; font-size: 9pt; }
-    .p-photos {
-      display: flex;
-      gap: 10px;
-      margin-top: 6px;
-    }
-    .p-photo-cell {
-      width: 50%;
-      border: 1px solid #333;
-      padding: 4px;
-      text-align: center;
-      height: 115mm;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-    }
-    .p-photo-cell img {
-      max-width: 100%;
-      max-height: 105mm;
-      object-fit: contain;
-    }
+    .report-page:last-child { break-after: auto; page-break-after: auto; }
+    .report-top { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 2.2mm; }
+    .report-header { display: flex; justify-content: space-between; align-items: flex-start;
+      border-bottom: 2px solid #0f294a; padding-bottom: 2mm; gap: 5mm; }
+    .report-title { font-size: 15pt; font-weight: 800; color: #0f294a; line-height: 1.12; }
+    .report-company { font-size: 8.5pt; color: #475569; margin-top: 1mm; line-height: 1.3; }
+    .report-number { text-align: right; font-size: 9pt; font-weight: 700; white-space: nowrap; color: #0f294a; }
+    .report-section-title { font-size: 8.2pt; font-weight: 800; color: #0f294a; text-transform: uppercase; margin-bottom: 1mm; }
+    .report-meta { border: 1px solid #cbd5e1; border-radius: 2mm; padding: 2mm 3mm; }
+    .report-meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1mm 5mm; }
+    .report-meta-line { overflow-wrap: anywhere; line-height: 1.3; }
+    .report-meta-line b { color: #334155; }
+    .report-checks { border: 1px solid #cbd5e1; border-radius: 2mm; overflow: hidden; }
+    .report-check-title { padding: 1.6mm 2.5mm; background: #e2e8f0; font-weight: 800; color: #0f294a; font-size: 8.2pt; }
+    .report-check { display: grid; grid-template-columns: minmax(0,1fr) 22mm; border-top: 1px solid #d9e2eb; font-size: 8pt; line-height: 1.15; }
+    .report-check-label { padding: 1.35mm 2.5mm; }
+    .report-check-status { padding: 1.35mm 1mm; text-align: center; font-weight: 800; border-left: 1px solid #d9e2eb; }
+    .report-check.ok .report-check-status { background: #dcfce7; color: #166534; }
+    .report-check.mgl .report-check-status { background: #ffedd5; color: #9a3412; }
+    .report-check.nv .report-check-status { background: #fef9c3; color: #854d0e; }
+    .report-check.open .report-check-status { background: #f1f5f9; color: #475569; }
+    .report-finding { border: 1.5px solid #64748b; border-radius: 2mm; overflow: hidden; }
+    .report-finding-head { display: flex; align-items: center; justify-content: space-between; gap: 2mm;
+      padding: 1.5mm 2.5mm; background: #e2e8f0; font-size: 8.2pt; font-weight: 800; color: #0f294a; }
+    .report-rating { padding: 1mm 2.5mm; border-radius: 1mm; font-size: 8pt; font-weight: 800; }
+    .report-rating.ok { background: #dcfce7; color: #166534; }
+    .report-rating.mgl { background: #ffedd5; color: #9a3412; }
+    .report-rating.open { background: #fef9c3; color: #854d0e; }
+    .report-rating.light { background: #fef9c3; color: #854d0e; }
+    .report-rating.heavy { background: #ffedd5; color: #9a3412; }
+    .report-rating.danger { background: #fee2e2; color: #991b1b; }
+    .report-finding-body { padding: 2mm 2.5mm; line-height: 1.3; font-size: 8.4pt; overflow-wrap: anywhere; white-space: pre-wrap; }
+    .report-finding-body .defects { font-weight: 700; color: #9a3412; }
+    .report-finding-foot { border-top: 1px solid #d9e2eb; padding: 1.5mm 2.5mm; display: flex;
+      justify-content: space-between; gap: 3mm; font-size: 7.6pt; }
+    .report-photos { height: 110mm; flex: 0 0 110mm; display: flex; gap: 3mm; margin-top: 2.5mm; }
+    .report-photo { flex: 1 1 0; min-width: 0; border: 1px solid #94a3b8; border-radius: 2mm;
+      padding: 2mm; display: flex; flex-direction: column; align-items: center; overflow: hidden; }
+    .report-photo-label { width: 100%; font-size: 8pt; font-weight: 700; color: #334155; margin-bottom: 1.5mm; }
+    .report-photo-frame { flex: 1; width: 100%; min-height: 0; display: flex; align-items: center; justify-content: center; color: #94a3b8; }
+    .report-photo img { width: 100%; height: 100%; object-fit: contain; }
   }
+
 </style>
 </head>
 <body>
@@ -506,7 +526,27 @@
       </div>
       <div class="field">
         <label>Geschoss / Stiege</label>
-        <input type="text" id="i_geschoss" placeholder="z. B. EG / Stiege 1" oninput="saveCurrentField('geschoss', this.value)">
+        <select id="i_geschoss" onchange="saveCurrentField('geschoss', this.value)">
+          <option value="">-- Geschoss wählen --</option>
+          <option value="UG 2">UG 2</option>
+          <option value="UG 1">UG 1</option>
+          <option value="KG">KG</option>
+          <option value="EG">EG</option>
+          <option value="HP">HP (Hochparterre)</option>
+          <option value="1. OG">1. OG</option>
+          <option value="2. OG">2. OG</option>
+          <option value="3. OG">3. OG</option>
+          <option value="4. OG">4. OG</option>
+          <option value="5. OG">5. OG</option>
+          <option value="6. OG">6. OG</option>
+          <option value="7. OG">7. OG</option>
+          <option value="8. OG">8. OG</option>
+          <option value="DG">DG (Dachgeschoss)</option>
+          <option value="DG 1">DG 1</option>
+          <option value="DG 2">DG 2</option>
+          <option value="Stiegenhaus">Stiegenhaus</option>
+          <option value="Technik / Dach">Technik / Dach</option>
+        </select>
       </div>
       <div class="field">
         <label>Raum / Top / Lage</label>
@@ -598,15 +638,25 @@
   </div>
 
   <div class="card">
+    <div class="section-head"><div class="section-title">4. Gesamtbewertung / Mängelstufe</div></div>
+    <div class="severity-options" id="severityOptions">
+      <button type="button" class="severity-btn" data-severity="Keine Mängel" onclick="setSeverity('Keine Mängel')">Keine Mängel</button>
+      <button type="button" class="severity-btn" data-severity="Leichter Mangel" onclick="setSeverity('Leichter Mangel')">Leichter Mangel</button>
+      <button type="button" class="severity-btn" data-severity="Schwerer Mangel" onclick="setSeverity('Schwerer Mangel')">Schwerer Mangel</button>
+      <button type="button" class="severity-btn" data-severity="Gefahr in Verzug" onclick="setSeverity('Gefahr in Verzug')">Gefahr in Verzug</button>
+    </div>
+  </div>
+
+  <div class="card">
     <div class="notes-header">
-      <div class="section-title" style="margin:0;">4. Zusatz / Bemerkungen / Mängelbeschreibung</div>
+      <div class="section-title" style="margin:0;">5. Zusatz / Bemerkungen / Mängelbeschreibung</div>
       <button type="button" class="mic-btn" id="micBtn" onclick="toggleDictation()">🎤 Diktieren</button>
     </div>
     <div class="field">
       <textarea id="i_bemerkung" rows="3" placeholder="Freitext oder per Mikrofon einsprechen..." oninput="saveCurrentField('bemerkung', this.value)"></textarea>
     </div>
 
-    <div class="section-title" style="margin-top:12px;">5. Fotodokumentation (max. 2 Fotos pro Fenster)</div>
+    <div class="section-title" style="margin-top:12px;">6. Fotodokumentation (max. 2 Fotos pro Fenster)</div>
     <div class="photo-grid">
       <div class="photo-box">
         <div style="font-size:11px; font-weight:700; color:#64748b;">Foto 1 (Übersicht / Fenster)</div>
@@ -695,6 +745,7 @@ function getDefaultItem(idx) {
     t1: "",
     t2: "",
     defects: [],
+    severity: "",
     cp: ["", "", "", "", "", "", ""],
     bemerkung: "",
     photo1: "",
@@ -794,7 +845,16 @@ function renderCurrentItem() {
   document.getElementById("itemEditorTag").textContent = item.editor ? ("Bearbeitet: " + item.editor) : "";
 
   document.getElementById("i_nr").value = item.nr || (UNIT_SINGULAR + " " + pad3(currentIndex));
-  document.getElementById("i_geschoss").value = item.geschoss || "";
+  const geschossSelect = document.getElementById("i_geschoss");
+  const geschossWert = item.geschoss || "";
+  // Bereits gespeicherte freie Geschossangaben nicht verlieren.
+  geschossSelect.querySelectorAll('option[data-altwert="1"]').forEach(option => option.remove());
+  if (geschossWert && !Array.from(geschossSelect.options).some(option => option.value === geschossWert)) {
+    const option = new Option(geschossWert + " (bisheriger Eintrag)", geschossWert);
+    option.dataset.altwert = "1";
+    geschossSelect.add(option);
+  }
+  geschossSelect.value = geschossWert;
   document.getElementById("i_raum").value = item.raum || "";
   document.getElementById("i_bemerkung").value = item.bemerkung || "";
 
@@ -816,6 +876,12 @@ function renderCurrentItem() {
     document.getElementById("cp_" + i + "_nv").className = "st-btn" + (val === "n. v." ? " active-nv" : "");
   }
 
+  document.querySelectorAll("#severityOptions .severity-btn").forEach(btn => {
+    const active = btn.dataset.severity === (item.severity || "");
+    const classes = {"Keine Mängel":"selected-none", "Leichter Mangel":"selected-light", "Schwerer Mangel":"selected-heavy", "Gefahr in Verzug":"selected-danger"};
+    btn.className = "severity-btn" + (active ? " " + classes[btn.dataset.severity] : "");
+    btn.setAttribute("aria-pressed", String(active));
+  });
   renderPhotoPreview(1, item.photo1);
   renderPhotoPreview(2, item.photo2);
   updateProgressBadge();
@@ -888,6 +954,16 @@ function setStatus(cpIdx, status) {
   pushToCloud();
 }
 
+function setSeverity(value) {
+  const allowed = ["Keine Mängel", "Leichter Mangel", "Schwerer Mangel", "Gefahr in Verzug"];
+  if (!allowed.includes(value)) return;
+  const item = getItem(currentIndex);
+  item.severity = item.severity === value ? "" : value;
+  markEditor(item);
+  renderCurrentItem();
+  pushToCloud();
+}
+
 function setAllOK() {
   const item = getItem(currentIndex);
   item.cp = ["OK", "OK", "OK", "OK", "OK", "OK", "OK"];
@@ -927,10 +1003,10 @@ function openOverview() {
     let cls = "ov-item";
     if (i === currentIndex) cls += " current";
     if (it && Array.isArray(it.cp)) {
-      const hasMgl = it.cp.includes("Mgl.") || (Array.isArray(it.defects) && it.defects.length > 0);
+      const hasMgl = it.cp.includes("Mgl.") || (Array.isArray(it.defects) && it.defects.length > 0) || ["Leichter Mangel", "Schwerer Mangel", "Gefahr in Verzug"].includes(it.severity);
       const filled = it.cp.filter(v => v !== "").length;
       if (hasMgl) cls += " mgl";
-      else if (filled === 7) cls += " ok";
+      else if (filled === 7 || it.severity === "Keine Mängel") cls += " ok";
       else if (filled > 0) cls += " part";
     }
     html += '<div class="' + cls + '" onclick="goToItem(' + i + ')">#' + pad3(i) + '</div>';
@@ -1059,6 +1135,13 @@ function loadBackup(ev) {
 }
 
 function resetProject() {
+  const enteredCode = prompt("Sicherheitscode eingeben, um die Baustelle zu leeren:");
+  if (enteredCode === null) return;
+  if (enteredCode.trim() !== "2380") {
+    alert("Falscher Sicherheitscode. Die Baustelle wurde nicht geleert.");
+    return;
+  }
+  if (!confirm("Vor dem Löschen bitte 'Backup sichern' verwenden.\n\nWirklich fortfahren?")) return;
   if (!confirm("Wirklich alle 160 " + UNIT_PLURAL + " für Code '" + projectCode + "' leeren?")) return;
   state = {
     global: {
@@ -1077,11 +1160,11 @@ function resetProject() {
 }
 
 function exportExcel() {
-  let csv = "\uFEFFNr;Geschoss;Raum;Typ 1;Typ 2;Maengel;P1;P2;P3;P4;P5;P6;P7;Bemerkung;Pruefer;Datum\n";
+  let csv = "\uFEFFNr;Geschoss;Raum;Typ 1;Typ 2;Maengel;Gesamtbewertung;P1;P2;P3;P4;P5;P6;P7;Bemerkung;Pruefer;Datum\n";
   for (let i = 1; i <= TOTAL_ITEMS; i++) {
     const it = state.items[i];
     if (!it) continue;
-    const hasData = (it.cp && it.cp.some(v => v !== "")) || it.bemerkung || it.geschoss || it.raum;
+    const hasData = (it.cp && it.cp.some(v => v !== "")) || it.bemerkung || it.geschoss || it.raum || it.severity;
     if (!hasData) continue;
     const row = [
       it.nr || (UNIT_SINGULAR + " " + pad3(i)),
@@ -1090,6 +1173,7 @@ function exportExcel() {
       it.t1 || "",
       it.t2 || "",
       (it.defects || []).join(", "),
+      it.severity || "",
       ...(it.cp || ["","","","","","",""]),
       (it.bemerkung || "").replace(/[\r\n;]+/g, " "),
       it.editor || state.global.pruefer || "",
@@ -1104,62 +1188,87 @@ function exportExcel() {
   a.click();
 }
 
+function escapePrint(value) {
+  return String(value == null ? "" : value).replace(/[&<>"']/g, ch => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  })[ch]);
+}
+
 function printAllPDF() {
   const area = document.getElementById("printArea");
   let html = "";
   let count = 0;
+  const e = escapePrint;
   for (let i = 1; i <= TOTAL_ITEMS; i++) {
     const it = state.items[i];
     if (!it) continue;
-    const hasData = (it.cp && it.cp.some(v => v !== "")) || it.bemerkung || it.photo1 || it.photo2;
+    const hasData = (it.cp && it.cp.some(v => v !== "")) || it.bemerkung || it.photo1 || it.photo2 ||
+      (it.defects && it.defects.length) || it.severity || it.geschoss || it.raum || it.t1 || it.t2 ||
+      (it.nr && it.nr !== UNIT_SINGULAR + " " + pad3(i));
     if (!hasData) continue;
     count++;
-    const hasMgl = (it.cp && it.cp.includes("Mgl.")) || (it.defects && it.defects.length > 0);
-    const bewertung = hasMgl ? "MÄNGEL FESTGESTELLT" : "FREIGEGEBEN / IN ORDNUNG";
-    let cpRows = "";
+    const cp = Array.isArray(it.cp) ? it.cp : [];
+    const defects = Array.isArray(it.defects) ? it.defects : [];
+    const hasMgl = cp.includes("Mgl.") || defects.length > 0;
+    const allDone = cp.length >= 7 && cp.slice(0, 7).every(v => v !== "");
+    const severityClasses = {"Keine Mängel":"ok", "Leichter Mangel":"light", "Schwerer Mangel":"heavy", "Gefahr in Verzug":"danger"};
+    const selectedSeverity = Object.prototype.hasOwnProperty.call(severityClasses, it.severity) ? it.severity : "";
+    const rating = selectedSeverity || (hasMgl ? "MÄNGEL FESTGESTELLT" : allDone ? "IN ORDNUNG" : "PRÜFUNG UNVOLLSTÄNDIG");
+    const ratingClass = selectedSeverity ? severityClasses[selectedSeverity] : hasMgl ? "mgl" : allDone ? "ok" : "open";
+    let checks = "";
     for (let c = 0; c < 7; c++) {
-      cpRows += "<tr><td>" + CHECKPOINTS[c] + "</td><td style='width:80px; font-weight:bold; text-align:center;'>" + ((it.cp && it.cp[c]) || "-") + "</td></tr>";
+      const v = cp[c] || "–";
+      const cls = v === "OK" ? "ok" : v === "Mgl." ? "mgl" : v === "n. v." ? "nv" : "open";
+      checks += `<div class="report-check ${cls}"><div class="report-check-label">${e(CHECKPOINTS[c])}</div><div class="report-check-status">${e(v)}</div></div>`;
     }
-    const defsText = (it.defects && it.defects.length > 0) ? ("<b>Schäden:</b> " + it.defects.join(", ") + "<br>") : "";
-    html += `
-      <div class="print-page">
-        <table class="p-tbl">
-          <tr>
-            <th style="width:65%;">WARTUNGSPROTOKOLL – FENSTER & FENSTERTÜREN (LIVE)</th>
-            <th style="width:35%;">Pos. #${pad3(i)} | Datum: ${state.global.datum || ""}</th>
-          </tr>
-          <tr>
-            <td><b>Objekt:</b> ${state.global.objekt || "-"}<br><b>Lage:</b> ${it.geschoss || "-"} / ${it.raum || "-"}</td>
-            <td><b>Bezeichnung:</b> ${it.nr || (UNIT_SINGULAR + " " + pad3(i))}<br><b>Ausführung:</b> ${it.t1 || "-"} | ${it.t2 || "-"}</td>
-          </tr>
-        </table>
-        <table class="p-tbl">
-          <tr><th>Prüfpunkt</th><th style="text-align:center;">Befund</th></tr>
-          ${cpRows}
-        </table>
-        <table class="p-tbl">
-          <tr>
-            <th style="width:62%;">ZUSATZ / BEMERKUNGEN / MÄNGELBESCHREIBUNG</th>
-            <th style="width:38%;">GESAMTBEWERTUNG &amp; PRÜFER</th>
-          </tr>
-          <tr>
-            <td style="height:22mm;">${defsText}${it.bemerkung || "-"}</td>
-            <td><b>Status:</b> ${bewertung}<br><b>Prüfer:</b> ${it.editor || state.global.pruefer || "-"}<br><b>Nächste Prüfung:</b> ${state.global.next || ""}</td>
-          </tr>
-        </table>
-        <div class="p-photos">
-          <div class="p-photo-cell">${it.photo1 ? '<img src="' + it.photo1 + '">' : 'Kein Foto 1'}</div>
-          <div class="p-photo-cell">${it.photo2 ? '<img src="' + it.photo2 + '">' : 'Kein Foto 2'}</div>
+    const photo = (num, data, label) => {
+      // Fotos werden ausschließlich aus den von der App erzeugten Data-URLs übernommen.
+      const safeSrc = typeof data === "string" && /^data:image\/(?:jpeg|png|webp);base64,[a-zA-Z0-9+/=]+$/.test(data) ? data : "";
+      return `<div class="report-photo"><div class="report-photo-label">${label}</div><div class="report-photo-frame">${safeSrc ? `<img src="${safeSrc}" alt="${label}">` : "Kein Foto vorhanden"}</div></div>`;
+    };
+    const defectsHtml = defects.length ? `<span class="defects">Schäden: ${e(defects.join(", "))}</span>\n` : "";
+    html += `<section class="report-page">
+      <div class="report-top">
+        <div class="report-header">
+          <div><div class="report-title">WARTUNGSPROTOKOLL<br>FENSTER &amp; FENSTERTÜREN</div>
+            <div class="report-company"><b>Tischlerei Höllerer GmbH</b> · St.Leonhard 149 · 3572 St.Leonhard/Hw</div></div>
+          <div class="report-number">FENSTER #${pad3(i)}<br>Prüfdatum: ${e(state.global.datum || "–")}</div>
+        </div>
+        <div class="report-meta"><div class="report-section-title">Objekt- &amp; Fensterdaten</div>
+          <div class="report-meta-grid">
+            <div class="report-meta-line"><b>Objekt / Baustelle:</b> ${e(state.global.objekt || "–")}</div>
+            <div class="report-meta-line"><b>Fenster-Nr.:</b> ${e(it.nr || UNIT_SINGULAR + " " + pad3(i))}</div>
+            <div class="report-meta-line"><b>Geschoss / Stiege:</b> ${e(it.geschoss || "–")}</div>
+            <div class="report-meta-line"><b>Raum / Top / Lage:</b> ${e(it.raum || "–")}</div>
+            <div class="report-meta-line"><b>Material:</b> ${e(it.t1 || "–")}</div>
+            <div class="report-meta-line"><b>Öffnungsart:</b> ${e(it.t2 || "–")}</div>
+          </div>
+        </div>
+        <div class="report-checks"><div class="report-check-title">Funktions- &amp; Sichtprüfung</div>${checks}</div>
+        <div class="report-finding">
+          <div class="report-finding-head"><span>BEFUND &amp; GESAMTBEWERTUNG</span><span class="report-rating ${ratingClass}">${rating}</span></div>
+          <div class="report-finding-body">${defectsHtml}${e(it.bemerkung || (defects.length ? "" : "Keine zusätzlichen Bemerkungen."))}</div>
+          <div class="report-finding-foot"><span><b>Prüfer:</b> ${e(it.editor || state.global.pruefer || "–")}</span><span><b>Nächste Prüfung:</b> ${e(state.global.next || "–")}</span></div>
         </div>
       </div>
-    `;
+      <div class="report-photos">${photo(1, it.photo1, "Foto 1 – Übersicht / Fenster")}${photo(2, it.photo2, "Foto 2 – Detail / Mangel")}</div>
+    </section>`;
   }
-  if (count === 0) {
-    alert("Es wurde noch keine Position ausgefüllt.");
-    return;
-  }
+  if (!count) { alert("Es wurde noch keine Fensterposition ausgefüllt."); return; }
   area.innerHTML = html;
-  setTimeout(() => window.print(), 150);
+  const imgs = Array.from(area.querySelectorAll("img"));
+  Promise.all(imgs.map(img => img.complete ? Promise.resolve() : new Promise(resolve => {
+    img.addEventListener("load", resolve, {once:true});
+    img.addEventListener("error", resolve, {once:true});
+  }))).then(() => {
+    // Bei sehr langen Befunden könnte die feste A4-Seite sonst Text abschneiden.
+    const overflow = Array.from(area.querySelectorAll(".report-page")).some(page => {
+      const top = page.querySelector(".report-top");
+      return top && top.scrollHeight > top.clientHeight + 3;
+    });
+    if (overflow && !confirm("Mindestens ein Fenster enthält sehr viel Text. Auf einer A4-Seite könnte ein Teil abgeschnitten werden. Trotzdem drucken?")) return;
+    window.print();
+  });
 }
 
 function changeProjectCode() {
