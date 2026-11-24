@@ -732,6 +732,13 @@
 <div id="printArea"></div>
 
 <script>
+function pdfPruefmonat(value) {
+  const match = /^(\d{4})-(0[1-9]|1[0-2])(?:-\d{2})?$/.exec(value || '');
+  if (!match) return value || '–';
+  const months = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+  return months[Number(match[2])-1] + ' ' + match[1];
+}
+
 const TOTAL_ITEMS = 160;
 const UNIT_SINGULAR = "Fenster";
 const UNIT_PLURAL = "Fenster";
@@ -1287,7 +1294,7 @@ function printDefectsList(onlyOpen = false) {
     <div class="defect-list-head"><div class="defect-list-title">${onlyOpen ? "OFFENE REPARATUREN" : "MÄNGELLISTE"} – FENSTER &amp; FENSTERTÜREN</div>
     <div class="defect-list-company"><b>Tischlerei Höllerer GmbH</b> · St.Leonhard 149 · 3572 St.Leonhard/Hw</div></div>
     <div class="defect-list-meta"><div><b>Objekt / Baustelle:</b> ${e(state.global.objekt || "–")}</div>
-    <div><b>Prüfdatum:</b> ${e(state.global.datum || "–")}</div>
+    <div><b>Prüfdatum:</b> ${e(pdfPruefmonat(state.global.datum))}</div>
     <div><b>Prüfer:</b> ${e(state.global.pruefer || "–")}</div>
     <div><b>Baustellen-Code:</b> ${e(projectCode)}</div></div>
     <div class="defect-list-summary">${onlyOpen ? matches.length + " Fenster mit offenen Reparaturen" : matches.length + " Fenster mit Mängeln (" + matches.filter(m => m.item.repairDone).length + " behoben, " + matches.filter(m => !m.item.repairDone).length + " offen)"} von ${TOTAL_ITEMS} Positionen ·
@@ -1338,7 +1345,7 @@ function printAllPDF() {
         <div class="report-header">
           <div><div class="report-title">WARTUNGSPROTOKOLL<br>FENSTER &amp; FENSTERTÜREN</div>
             <div class="report-company"><b>Tischlerei Höllerer GmbH</b> · St.Leonhard 149 · 3572 St.Leonhard/Hw</div></div>
-          <div class="report-number">FENSTER #${pad3(i)}<br>Prüfdatum: ${e(state.global.datum || "–")}</div>
+          <div class="report-number">FENSTER #${pad3(i)}<br>Prüfdatum: ${e(pdfPruefmonat(state.global.datum))}</div>
         </div>
         <div class="report-meta"><div class="report-section-title">Objekt- &amp; Fensterdaten</div>
           <div class="report-meta-grid">
