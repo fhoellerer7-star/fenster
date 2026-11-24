@@ -537,7 +537,7 @@
       </div>
       <div class="field">
         <label>Prüfdatum</label>
-        <input type="text" id="g_datum" oninput="saveGlobal()">
+        <input type="date" id="g_datum" oninput="saveGlobal()">
       </div>
     </div>
   </div>
@@ -732,8 +732,13 @@
 <div id="printArea"></div>
 
 <script>
+function isoPruefdatum(value) {
+  const raw = String(value || '').trim();
+  const m = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(raw);
+  return m ? m[3] + '-' + m[2].padStart(2,'0') + '-' + m[1].padStart(2,'0') : raw;
+}
 function pdfPruefmonat(value) {
-  const match = /^(\d{4})-(0[1-9]|1[0-2])(?:-\d{2})?$/.exec(value || '');
+  const match = /^(\d{4})-(0[1-9]|1[0-2])(?:-\d{2})?$/.exec(isoPruefdatum(value));
   if (!match) return value || '–';
   const months = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
   return months[Number(match[2])-1] + ' ' + match[1];
@@ -878,7 +883,7 @@ function renderGlobal() {
   document.getElementById("g_next").value = state.global.next || "lt. Gesetzgeber (jährlich)";
   document.getElementById("g_pruefer").value = state.global.pruefer || "";
   document.getElementById("g_kuerzel").value = state.global.kuerzel || "";
-  document.getElementById("g_datum").value = state.global.datum || getTodayStr();
+  document.getElementById("g_datum").value = isoPruefdatum(state.global.datum || getTodayStr());
 }
 
 function renderCurrentItem() {
@@ -957,7 +962,8 @@ function saveGlobal() {
   state.global.next = document.getElementById("g_next").value;
   state.global.pruefer = document.getElementById("g_pruefer").value;
   state.global.kuerzel = document.getElementById("g_kuerzel").value;
-  state.global.datum = document.getElementById("g_datum").value;
+  const selectedDate = document.getElementById("g_datum").value;
+  if (selectedDate) state.global.datum = selectedDate.split("-").reverse().join(".");
   pushToCloud();
 }
 
@@ -1345,11 +1351,12 @@ function printAllPDF() {
         <div class="report-header">
           <div><div class="report-title">WARTUNGSPROTOKOLL<br>FENSTER &amp; FENSTERTÜREN</div>
             <div class="report-company"><b>Tischlerei Höllerer GmbH</b> · St.Leonhard 149 · 3572 St.Leonhard/Hw</div></div>
-          <div class="report-number">FENSTER #${pad3(i)}<br>Prüfdatum: ${e(pdfPruefmonat(state.global.datum))}</div>
+          <div class="report-number">FENSTER #${pad3(i)}</div>
         </div>
         <div class="report-meta"><div class="report-section-title">Objekt- &amp; Fensterdaten</div>
           <div class="report-meta-grid">
             <div class="report-meta-line"><b>Objekt / Baustelle:</b> ${e(state.global.objekt || "–")}</div>
+            <div class="report-meta-line"><b>Prüfdatum:</b> ${e(pdfPruefmonat(state.global.datum))}</div>
             <div class="report-meta-line"><b>Fenster-Nr.:</b> ${e(it.nr || UNIT_SINGULAR + " " + pad3(i))}</div>
             <div class="report-meta-line"><b>Geschoss / Stiege:</b> ${e(it.geschoss || "–")}</div>
             <div class="report-meta-line"><b>Raum / Top / Lage:</b> ${e(it.raum || "–")}</div>
