@@ -502,10 +502,10 @@
     <button type="button" class="tool-btn" style="background:#b45309" onclick="printDefectsList()">Mängelliste (PDF)</button>
     <button type="button" class="tool-btn" style="background:#9a3412" onclick="printDefectsList(true)">Offene Reparaturen (PDF)</button>
     <button type="button" class="tool-btn slate" onclick="exportExcel()">Excel-Liste</button>
-    <button type="button" class="tool-btn slate" onclick="downloadBackup()">Backup sichern</button>
+    <button type="button" class="tool-btn slate" onclick="downloadBackup()">Zwischenstand sichern</button>
     <button type="button" class="tool-btn slate" onclick="document.getElementById('backupFile').click()">Backup laden</button>
     <button type="button" class="tool-btn red" onclick="resetProject()">Baustelle leeren</button>
-    <input type="file" id="backupFile" accept=".json" style="display:none" onchange="loadBackup(event)">
+    <div id="backupStatus" style="font-size:13px;padding:8px" role="status">Noch keine Zwischensicherung in dieser Sitzung gestartet.</div><input type="file" id="backupFile" accept=".json" style="display:none" onchange="loadBackup(event)">
   </div>
 </div>
 
@@ -1164,39 +1164,50 @@ function toggleDictation() {
   recognition.start();
 }
 
+function backupPayload(){return JSON.stringify({...state,projectCode,totalItems:TOTAL_ITEMS});}
 function downloadBackup() {
-  const blob = new Blob([JSON.stringify({...state, projectCode, totalItems:TOTAL_ITEMS}, null, 2)], { type: "application/json" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "Backup_" + UNIT_PLURAL + "_" + projectCode + "_" + getTodayStr() + ".json";
-  a.click();
+  try {
+    const now=new Date(), pad=n=>String(n).padStart(2,"0");
+    const stamp=getTodayStr()+"_"+[now.getHours(),now.getMinutes(),now.getSeconds()].map(pad).join("-")+"-"+String(now.getMilliseconds()).padStart(3,"0");
+    const count=Object.values(state.items).filter(it=>it.cp&&it.cp.some(v=>v!=="")).length;
+    const name="Backup_Fenster_"+projectCode+"_"+stamp+"_"+count+"F_"+crypto.randomUUID()+".json";
+    const blob=new Blob([backupPayload()],{type:"application/json"});
+    const url=URL.createObjectURL(blob), a=document.createElement("a");
+    a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+    document.getElementById("backupStatus").textContent="Download gestartet: "+now.toLocaleString("de-AT")+" · "+count+" / "+TOTAL_ITEMS+" Fenster. Datei im Download-Ordner kontrollieren.";
+    return true;
+  } catch(e){alert("Backup konnte nicht gestartet werden. Nichts löschen!");return false;}
 }
 
 async function loadBackup(ev){const file=ev.target.files[0];ev.target.value="";if(!file)return;try{const parsed=JSON.parse(await file.text());if(!parsed.global||!parsed.items||typeof parsed.items!=="object"||Array.isArray(parsed.items)||Object.keys(parsed.items).some(k=>!/^\d+$/.test(k)||Number(k)<1||Number(k)>500))throw Error("Format");const code=parsed.projectCode;if(code&&code!==projectCode){alert("Backup gehört zu "+code+". Bitte zuerst diese Projektnummer öffnen.");return;}if(!confirm((code?"Backup-Code: "+code:"Altes Backup ohne gespeicherten Projektcode. Bitte Dateiname und Objekt prüfen!")+"\nObjekt: "+(parsed.global.objekt||"–")+"\nAktuelle Testbaustelle "+projectCode+" vollständig ersetzen? Vorher Backup sichern!"))return;applyState(parsed);await pushToCloud();if(!failed)alert("Backup lokal gespeichert.");}catch(e){alert("Ungültiges Fenster-Backup.");}}
 
-function resetProject() {
-  const enteredCode = prompt("Sicherheitscode eingeben, um die Baustelle zu leeren:");
-  if (enteredCode === null) return;
-  if (enteredCode.trim() !== "2380") {
-    alert("Falscher Sicherheitscode. Die Baustelle wurde nicht geleert.");
-    return;
-  }
-  if (!confirm("Vor dem Löschen bitte 'Backup sichern' verwenden.\n\nWirklich fortfahren?")) return;
-  if (!confirm("Wirklich alle " + TOTAL_ITEMS + " " + UNIT_PLURAL + " für Code '" + projectCode + "' leeren?")) return;
-  state = {
-    global: {
-      objekt: "",
-      next: "lt. Gesetzgeber (jährlich)",
-      pruefer: state.global.pruefer || "",
-      kuerzel: state.global.kuerzel || "",
-      datum: getTodayStr()
-    },
-    items: {}
+async function resetProject() {
+  const enteredCode=prompt("Sicherheitscode eingeben, um die Baustelle zu leeren:");
+  if(enteredCode===null)return;
+  if(enteredCode.trim()!=="2380"){alert("Falscher Sicherheitscode.");return;}
+  if(!confirm("Vor dem Leeren muss eine neue Sicherung heruntergeladen und kontrolliert werden. Jetzt Sicherung starten?"))return;
+  const snapshot=backupPayload();
+  if(!downloadBackup())return;
+  const picker=document.createElement("input");picker.type="file";picker.accept=".json,application/json";
+  picker.onchange=async()=>{
+    const file=picker.files[0];if(!file)return;
+    document.body.inert=true;
+    try{
+      const saved=JSON.parse(await file.text());
+      if(JSON.stringify(saved)!==snapshot||backupPayload()!==snapshot){alert("Sicherung stimmt nicht mit dem aktuellen Stand überein. Baustelle bleibt erhalten.");return;}
+      if(!confirm("Sicherungsdatei erfolgreich geprüft. Baustelle "+projectCode+" wirklich leeren?"))return;
+      const old=state, oldIndex=currentIndex;
+      state={global:{...old.global,objekt:"",datum:getTodayStr()},items:{},totalItems:TOTAL_ITEMS};currentIndex=1;
+      await pushToCloud();
+      if(failed){state=old;currentIndex=oldIndex;alert("Leeren konnte nicht gespeichert werden. Daten bleiben in der App erhalten.");}
+      renderGlobal();renderCurrentItem();
+    }catch(e){alert("Sicherung konnte nicht geprüft werden. Baustelle bleibt erhalten.");}finally{document.body.inert=false;}
   };
-  currentIndex = 1;
-  renderGlobal();
-  renderCurrentItem();
-  pushToCloud();
+  alert("Bitte den Download abschließen und danach die gerade gespeicherte JSON-Datei auswählen. Ohne passende Datei wird nichts gelöscht.");
+  // Separate user gesture for file picker on mobile.
+  const btn=document.createElement("button");btn.type="button";btn.textContent="Gesicherte Datei prüfen und Baustelle leeren";btn.className="tool-btn red";
+  const status=document.getElementById("backupStatus");status.append(document.createElement("br"),btn);
+  btn.onclick=()=>picker.click();
 }
 
 function exportExcel() {
@@ -1381,7 +1392,7 @@ async function changeProjectCode(){const input=document.getElementById("projectC
 </script><script>
 const panel=document.createElement('div');panel.style.cssText='padding:10px;background:#e2e8f0;color:#0f294a;font:14px sans-serif';panel.innerHTML='<div id="pwaStatus">Offline-Start wird geprüft …</div><div id="storageStatus"></div><div>Cloud-Sync: deaktiviert (Testbetrieb)</div><button id="persistStorage" type="button">Dauerhaften Speicher anfragen</button>';document.body.prepend(panel);
 const style=document.createElement('style');style.textContent='@media print { #pwaStatus, #storageStatus, #persistStorage {display:none!important} }';document.head.append(style);panel.className='pwa-info';style.textContent+=' @media print {.pwa-info{display:none!important}}';
-async function storageInfo(){try{const e=await navigator.storage.estimate();document.getElementById('storageStatus').textContent='Website-Speicher: '+(e.usage/1048576).toFixed(1)+' MB belegt; geschätztes Limit '+(e.quota/1048576).toFixed(0)+' MB';}catch{document.getElementById('storageStatus').textContent='Speicherverbrauch nicht verfügbar';}}
+async function storageInfo(){try{const e=await navigator.storage.estimate();document.getElementById('storageStatus').textContent='Website-Speicher: '+(e.usage/1048576).toFixed(1)+' MB belegt; geschätztes Limit '+(e.quota/1048576).toFixed(0)+' MB'+(e.quota&&e.usage/e.quota>=0.8?' · WARNUNG: Speicher knapp – Zwischenstand sichern!':'');}catch{document.getElementById('storageStatus').textContent='Speicherverbrauch nicht verfügbar';}}
 storageInfo();setInterval(storageInfo,15000);
 document.getElementById('persistStorage').onclick=async()=>{try{alert(await navigator.storage.persist()?'Dauerhafter Speicher gewährt. Backups weiterhin erforderlich.':'Browser hat dauerhaften Speicher nicht gewährt.');}catch{alert('Nicht verfügbar.');}};
 async function offlineStatus(){const el=document.getElementById('pwaStatus');try{if(!('serviceWorker' in navigator))throw Error();await navigator.serviceWorker.register('./sw.js');await navigator.serviceWorker.ready;el.textContent=(navigator.onLine?'Online':'Offline')+' · Offline-Start vorbereitet';}catch{el.textContent='Offline-Start nicht eingerichtet – HTTPS erforderlich';}}offlineStatus();window.addEventListener('online',offlineStatus);window.addEventListener('offline',()=>{document.getElementById('pwaStatus').textContent='Offline · lokale Bearbeitung';});
