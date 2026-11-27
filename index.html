@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0f294a">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>WARTUNGSPROTOKOLL – FENSTER & FENSTERTÜREN (LIVE)</title>
+<title>WARTUNGSPROTOKOLL – FENSTER & FENSTERTÜREN (INDEXEDDB TEST)</title>
 <style>
   :root {
     --navy: #0f294a;
@@ -251,6 +253,8 @@
   }
   .st-btn.active-ok { background: var(--green); color: #fff; border-color: var(--green); }
   .st-btn.active-mgl { background: var(--red); color: #fff; border-color: var(--red); }
+  .st-btn.active-done { background:#2563eb; color:#fff; border-color:#2563eb; }
+  @media(max-width:600px){ .cp-row { flex-wrap:wrap; } .cp-btns { width:100%; } .cp-btns .st-btn { flex:1; padding:7px 3px; } }
   .st-btn.active-nv { background: #64748b; color: #fff; border-color: #64748b; }
   .notes-header {
     display: flex;
@@ -405,7 +409,7 @@
   .repair-hint { margin-top:8px; color:#475569; font-size:12px; }
   @media print {
     html, body { margin: 0 !important; padding: 0 !important; background: white !important; }
-    .topbar, .container, .bottom-nav, .modal-bg { display: none !important; }
+    body > :not(#printArea) { display: none !important; }
     #printArea { display: block !important; }
     #printArea, #printArea * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 
@@ -452,12 +456,14 @@
     .report-checks { border: 1px solid #cbd5e1; border-radius: 2mm; overflow: hidden; }
     .report-check-title { padding: 1.6mm 2.5mm; background: #e2e8f0; font-weight: 800; color: #0f294a; font-size: 8.2pt; }
     .report-check { display: grid; grid-template-columns: minmax(0,1fr) 22mm; border-top: 1px solid #d9e2eb; font-size: 8pt; line-height: 1.15; }
-    .report-check-label { padding: 1.35mm 2.5mm; }
-    .report-check-status { padding: 1.35mm 1mm; text-align: center; font-weight: 800; border-left: 1px solid #d9e2eb; }
+    .report-check-label { padding: 0.85mm 2.5mm; }
+    .report-check-status { padding: 0.85mm 1mm; text-align: center; font-weight: 800; border-left: 1px solid #d9e2eb; }
     .report-check.ok .report-check-status { background: #dcfce7; color: #166534; }
+    .report-check.done .report-check-status { background:#dbeafe; color:#1d4ed8; }
     .report-check.mgl .report-check-status { background: #ffedd5; color: #9a3412; }
     .report-check.nv .report-check-status { background: #fef9c3; color: #854d0e; }
     .report-check.open .report-check-status { background: #f1f5f9; color: #475569; }
+    .report-work {border:1px solid #15803d;background:#dcfce7;color:#166534;padding:1.5mm;font-size:8pt;border-radius:2mm;}
     .report-finding { border: 1.5px solid #64748b; border-radius: 2mm; overflow: hidden; }
     .report-finding-head { display: flex; align-items: center; justify-content: space-between; gap: 2mm;
       padding: 1.5mm 2.5mm; background: #e2e8f0; font-size: 8.2pt; font-weight: 800; color: #0f294a; }
@@ -472,7 +478,7 @@
     .report-finding-body .defects { font-weight: 700; color: #9a3412; }
     .report-finding-foot { border-top: 1px solid #d9e2eb; padding: 1.5mm 2.5mm; display: flex;
       justify-content: space-between; gap: 3mm; font-size: 7.6pt; }
-    .report-photos { height: 110mm; flex: 0 0 110mm; display: flex; gap: 3mm; margin-top: 2.5mm; }
+    .report-photos { height: 60mm; flex: 0 0 60mm; display: flex; gap: 3mm; margin-top: 2.5mm; }
     .report-photo { flex: 1 1 0; min-width: 0; border: 1px solid #94a3b8; border-radius: 2mm;
       padding: 2mm; display: flex; flex-direction: column; align-items: center; overflow: hidden; }
     .report-photo-label { width: 100%; font-size: 8pt; font-weight: 700; color: #334155; margin-bottom: 1.5mm; }
@@ -480,17 +486,18 @@
     .report-photo img { width: 100%; height: 100%; object-fit: contain; }
   }
 
+.issue-panel{grid-column:1/-1;width:100%;box-sizing:border-box;margin:8px 0;padding:10px;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px}.issue-panel[hidden]{display:none}.issue-entry{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #ddd}.issue-entry label{flex:1}.issue-entry button{padding:5px}.issue-panel .field{margin-top:8px}.issue-panel input[type=text],.issue-panel input:not([type]){width:100%}
 </style>
 </head>
 <body>
 
 <div class="topbar">
   <div class="topbar-head">
-    <div class="topbar-title">WARTUNGSPROTOKOLL – FENSTER & FENSTERTÜREN (LIVE)</div>
+    <div class="topbar-title">WARTUNGSPROTOKOLL – FENSTER & FENSTERTÜREN (INDEXEDDB TEST)</div>
     <div class="status-pill"><span class="dot offline" id="connDot"></span><span id="connText">Lokal bereit</span></div>
   </div>
   <div class="toolbar">
-    <button type="button" class="tool-btn blue" onclick="openOverview()">Übersicht (1–160)</button>
+    <button type="button" class="tool-btn blue" onclick="openOverview()">Übersicht</button>
     <button type="button" class="tool-btn green" onclick="printAllPDF()">Gesamt-PDF</button>
     <button type="button" class="tool-btn" style="background:#b45309" onclick="printDefectsList()">Mängelliste (PDF)</button>
     <button type="button" class="tool-btn" style="background:#9a3412" onclick="printDefectsList(true)">Offene Reparaturen (PDF)</button>
@@ -505,17 +512,19 @@
 <div class="container">
   <div class="card code-bar">
     <div class="code-left">
-      <span class="code-label">LIVE-BAUSTELLEN-CODE:</span>
-      <input type="text" id="projectCode" class="code-input" value="PROJ-260001" onchange="changeProjectCode()">
+      <span class="code-label">TEST-BAUSTELLEN-CODE:</span>
+      <input type="text" id="projectCode" class="code-input" value="TEST-260001" onchange="changeProjectCode()">
     </div>
-    <div style="font-size:12px; color:#334155; font-weight:600;">Gleicher Code = alle Geräte live synchron (funktioniert auch offline)</div>
+    <div style="font-size:12px; color:#334155; font-weight:600;">Separate Testversion – keine Firebase-Verbindung. <button type="button" class="tool-btn blue" onclick="changeCount()">Fensteranzahl ändern</button></div>
   </div>
 
   <div class="card">
     <div class="section-head">
-      <div class="section-title">1. Projektdaten (gilt für alle 160 Fenster)</div>
-      <div class="badge-count" id="progressBadge">0 / 160 BEARBEITET</div>
+      <div class="section-title">1. Projektdaten</div>
+      <div class="badge-count" id="progressBadge">0 / 100 BEARBEITET</div>
     </div>
+    <div class="section-title" style="margin:10px 0">Wartendes Unternehmen</div>
+    <div class="grid-2"><div class="field"><label>Firmenname</label><input type="text" id="g_company" oninput="saveGlobal()"></div><div class="field"><label>Straße / Hausnummer</label><input type="text" id="g_street" oninput="saveGlobal()"></div><div class="field"><label>PLZ</label><input type="text" id="g_zip" oninput="saveGlobal()"></div><div class="field"><label>Ort</label><input type="text" id="g_city" oninput="saveGlobal()"></div></div>
     <div class="grid-2">
       <div class="field">
         <label>Objekt / Baustelle / Adresse</label>
@@ -544,7 +553,7 @@
 
   <div class="card">
     <div class="section-head">
-      <div class="section-title" id="itemHeaderTitle">2. FENSTER #001 VON 160</div>
+      <div class="section-title" id="itemHeaderTitle">2. FENSTER #001 VON 100</div>
       <div style="font-size:12px; font-weight:700; color:#64748b;" id="itemEditorTag"></div>
     </div>
     <div class="grid-3">
@@ -587,16 +596,19 @@
 
     <div class="chip-group-label">Öffnungsart</div>
     <div class="chips" id="chips_t2"><button type="button" class="chip-btn" data-group="t2" onclick="toggleChip('t2', 'Dreh-Kipp-Fenster')">Dreh-Kipp-Fenster</button><button type="button" class="chip-btn" data-group="t2" onclick="toggleChip('t2', 'Drehfenster')">Drehfenster</button><button type="button" class="chip-btn" data-group="t2" onclick="toggleChip('t2', 'Kippfenster (Oberlicht)')">Kippfenster (Oberlicht)</button><button type="button" class="chip-btn" data-group="t2" onclick="toggleChip('t2', 'Festverglasung')">Festverglasung</button><button type="button" class="chip-btn" data-group="t2" onclick="toggleChip('t2', 'Balkon-/Terrassentür')">Balkon-/Terrassentür</button><button type="button" class="chip-btn" data-group="t2" onclick="toggleChip('t2', 'Schiebe-/Hebe-Schiebe')">Schiebe-/Hebe-Schiebe</button></div>
+    <div class="chip-group-label">Oberfläche innen</div>
+    <div class="chips" id="chips_surfaceInside"><button type="button" class="chip-btn" onclick="toggleChip('surfaceInside', 'Lackiert')">Lackiert</button><button type="button" class="chip-btn" onclick="toggleChip('surfaceInside', 'Lasiert')">Lasiert</button><button type="button" class="chip-btn" onclick="toggleChip('surfaceInside', 'Geölt')">Geölt</button><button type="button" class="chip-btn" onclick="toggleChip('surfaceInside', 'Pulverbeschichtet')">Pulverbeschichtet</button><button type="button" class="chip-btn" onclick="toggleChip('surfaceInside', 'Eloxiert')">Eloxiert</button><button type="button" class="chip-btn" onclick="toggleChip('surfaceInside', 'Foliert')">Foliert</button><button type="button" class="chip-btn" onclick="toggleChip('surfaceInside', 'Unbehandelt')">Unbehandelt</button><button type="button" class="chip-btn" onclick="toggleChip('surfaceInside', 'Sonstige')">Sonstige</button></div>
+    <div class="chip-group-label">Oberfläche außen</div>
+    <div class="chips" id="chips_surfaceOutside"><button type="button" class="chip-btn" onclick="toggleChip('surfaceOutside', 'Lackiert')">Lackiert</button><button type="button" class="chip-btn" onclick="toggleChip('surfaceOutside', 'Lasiert')">Lasiert</button><button type="button" class="chip-btn" onclick="toggleChip('surfaceOutside', 'Geölt')">Geölt</button><button type="button" class="chip-btn" onclick="toggleChip('surfaceOutside', 'Pulverbeschichtet')">Pulverbeschichtet</button><button type="button" class="chip-btn" onclick="toggleChip('surfaceOutside', 'Eloxiert')">Eloxiert</button><button type="button" class="chip-btn" onclick="toggleChip('surfaceOutside', 'Foliert')">Foliert</button><button type="button" class="chip-btn" onclick="toggleChip('surfaceOutside', 'Unbehandelt')">Unbehandelt</button><button type="button" class="chip-btn" onclick="toggleChip('surfaceOutside', 'Sonstige')">Sonstige</button></div>
 
-    <div class="chip-group-label">Typische Fenster- / Holzschäden (Schnellauswahl)</div>
-    <div class="chips" id="chips_defects"><button type="button" class="chip-btn defect-chip" data-group="defects" onclick="toggleMultiChip('Abgemorscht / Holzschaden')">Abgemorscht / Holzschaden</button><button type="button" class="chip-btn defect-chip" data-group="defects" onclick="toggleMultiChip('Flügel streift / hängt')">Flügel streift / hängt</button><button type="button" class="chip-btn defect-chip" data-group="defects" onclick="toggleMultiChip('Beschlag schwergängig')">Beschlag schwergängig</button><button type="button" class="chip-btn defect-chip" data-group="defects" onclick="toggleMultiChip('Dichtung porös / gerissen')">Dichtung porös / gerissen</button><button type="button" class="chip-btn defect-chip" data-group="defects" onclick="toggleMultiChip('Griff locker / Getriebe defekt')">Griff locker / Getriebe defekt</button><button type="button" class="chip-btn defect-chip" data-group="defects" onclick="toggleMultiChip('Glasleiste / Silikon lose')">Glasleiste / Silikon lose</button><button type="button" class="chip-btn defect-chip" data-group="defects" onclick="toggleMultiChip('Entwässerung verstopft')">Entwässerung verstopft</button></div>
+
   </div>
 
   <div class="card">
     <div class="section-head">
       <div class="section-title">3. Funktions- &amp; Sichtprüfung</div>
     </div>
-    <button type="button" class="all-ok-btn" onclick="setAllOK()">ALLE 7 PUNKTE OK SETZEN</button>
+    <button type="button" class="all-ok-btn" onclick="setAllOK()">ALLE 12 PUNKTE OK SETZEN</button>
     <div id="checkpointsContainer">
       
         <div class="cp-row">
@@ -604,7 +616,7 @@
             <div class="cp-btns">
                 <button type="button" class="st-btn" id="cp_0_ok" onclick="setStatus(0, 'OK')">OK</button>
                 <button type="button" class="st-btn" id="cp_0_mgl" onclick="setStatus(0, 'Mgl.')">Mgl.</button>
-                <button type="button" class="st-btn" id="cp_0_nv" onclick="setStatus(0, 'n. v.')">n. v.</button>
+                <button type="button" class="st-btn" id="cp_0_done" onclick="setStatus(0, 'Behoben')">Behoben</button><button type="button" class="st-btn" id="cp_0_nv" onclick="setStatus(0, 'n. v.')">n. v.</button>
             </div>
         </div>
         
@@ -613,7 +625,7 @@
             <div class="cp-btns">
                 <button type="button" class="st-btn" id="cp_1_ok" onclick="setStatus(1, 'OK')">OK</button>
                 <button type="button" class="st-btn" id="cp_1_mgl" onclick="setStatus(1, 'Mgl.')">Mgl.</button>
-                <button type="button" class="st-btn" id="cp_1_nv" onclick="setStatus(1, 'n. v.')">n. v.</button>
+                <button type="button" class="st-btn" id="cp_1_done" onclick="setStatus(1, 'Behoben')">Behoben</button><button type="button" class="st-btn" id="cp_1_nv" onclick="setStatus(1, 'n. v.')">n. v.</button>
             </div>
         </div>
         
@@ -622,7 +634,7 @@
             <div class="cp-btns">
                 <button type="button" class="st-btn" id="cp_2_ok" onclick="setStatus(2, 'OK')">OK</button>
                 <button type="button" class="st-btn" id="cp_2_mgl" onclick="setStatus(2, 'Mgl.')">Mgl.</button>
-                <button type="button" class="st-btn" id="cp_2_nv" onclick="setStatus(2, 'n. v.')">n. v.</button>
+                <button type="button" class="st-btn" id="cp_2_done" onclick="setStatus(2, 'Behoben')">Behoben</button><button type="button" class="st-btn" id="cp_2_nv" onclick="setStatus(2, 'n. v.')">n. v.</button>
             </div>
         </div>
         
@@ -631,7 +643,7 @@
             <div class="cp-btns">
                 <button type="button" class="st-btn" id="cp_3_ok" onclick="setStatus(3, 'OK')">OK</button>
                 <button type="button" class="st-btn" id="cp_3_mgl" onclick="setStatus(3, 'Mgl.')">Mgl.</button>
-                <button type="button" class="st-btn" id="cp_3_nv" onclick="setStatus(3, 'n. v.')">n. v.</button>
+                <button type="button" class="st-btn" id="cp_3_done" onclick="setStatus(3, 'Behoben')">Behoben</button><button type="button" class="st-btn" id="cp_3_nv" onclick="setStatus(3, 'n. v.')">n. v.</button>
             </div>
         </div>
         
@@ -640,7 +652,7 @@
             <div class="cp-btns">
                 <button type="button" class="st-btn" id="cp_4_ok" onclick="setStatus(4, 'OK')">OK</button>
                 <button type="button" class="st-btn" id="cp_4_mgl" onclick="setStatus(4, 'Mgl.')">Mgl.</button>
-                <button type="button" class="st-btn" id="cp_4_nv" onclick="setStatus(4, 'n. v.')">n. v.</button>
+                <button type="button" class="st-btn" id="cp_4_done" onclick="setStatus(4, 'Behoben')">Behoben</button><button type="button" class="st-btn" id="cp_4_nv" onclick="setStatus(4, 'n. v.')">n. v.</button>
             </div>
         </div>
         
@@ -649,7 +661,7 @@
             <div class="cp-btns">
                 <button type="button" class="st-btn" id="cp_5_ok" onclick="setStatus(5, 'OK')">OK</button>
                 <button type="button" class="st-btn" id="cp_5_mgl" onclick="setStatus(5, 'Mgl.')">Mgl.</button>
-                <button type="button" class="st-btn" id="cp_5_nv" onclick="setStatus(5, 'n. v.')">n. v.</button>
+                <button type="button" class="st-btn" id="cp_5_done" onclick="setStatus(5, 'Behoben')">Behoben</button><button type="button" class="st-btn" id="cp_5_nv" onclick="setStatus(5, 'n. v.')">n. v.</button>
             </div>
         </div>
         
@@ -658,13 +670,19 @@
             <div class="cp-btns">
                 <button type="button" class="st-btn" id="cp_6_ok" onclick="setStatus(6, 'OK')">OK</button>
                 <button type="button" class="st-btn" id="cp_6_mgl" onclick="setStatus(6, 'Mgl.')">Mgl.</button>
-                <button type="button" class="st-btn" id="cp_6_nv" onclick="setStatus(6, 'n. v.')">n. v.</button>
+                <button type="button" class="st-btn" id="cp_6_done" onclick="setStatus(6, 'Behoben')">Behoben</button><button type="button" class="st-btn" id="cp_6_nv" onclick="setStatus(6, 'n. v.')">n. v.</button>
             </div>
         </div>
-        
+        <div class="cp-row"><div class="cp-label">8. Öffnungsbegrenzer &amp; Kindersicherung</div><div class="cp-btns"><button type="button" class="st-btn" id="cp_7_ok" onclick="setStatus(7, 'OK')">OK</button><button type="button" class="st-btn" id="cp_7_mgl" onclick="setStatus(7, 'Mgl.')">Mgl.</button><button type="button" class="st-btn" id="cp_7_done" onclick="setStatus(7, 'Behoben')">Behoben</button><button type="button" class="st-btn" id="cp_7_nv" onclick="setStatus(7, 'n. v.')">n. v.</button></div></div>
+<div class="cp-row"><div class="cp-label">9. Flügelsicherung &amp; Befestigung</div><div class="cp-btns"><button type="button" class="st-btn" id="cp_8_ok" onclick="setStatus(8, 'OK')">OK</button><button type="button" class="st-btn" id="cp_8_mgl" onclick="setStatus(8, 'Mgl.')">Mgl.</button><button type="button" class="st-btn" id="cp_8_done" onclick="setStatus(8, 'Behoben')">Behoben</button><button type="button" class="st-btn" id="cp_8_nv" onclick="setStatus(8, 'n. v.')">n. v.</button></div></div>
+<div class="cp-row"><div class="cp-label">10. Bauanschluss &amp; Anschlussfugen</div><div class="cp-btns"><button type="button" class="st-btn" id="cp_9_ok" onclick="setStatus(9, 'OK')">OK</button><button type="button" class="st-btn" id="cp_9_mgl" onclick="setStatus(9, 'Mgl.')">Mgl.</button><button type="button" class="st-btn" id="cp_9_done" onclick="setStatus(9, 'Behoben')">Behoben</button><button type="button" class="st-btn" id="cp_9_nv" onclick="setStatus(9, 'n. v.')">n. v.</button></div></div>
+<div class="cp-row"><div class="cp-label">11. Oberflächen &amp; Witterungsschutz</div><div class="cp-btns"><button type="button" class="st-btn" id="cp_10_ok" onclick="setStatus(10, 'OK')">OK</button><button type="button" class="st-btn" id="cp_10_mgl" onclick="setStatus(10, 'Mgl.')">Mgl.</button><button type="button" class="st-btn" id="cp_10_done" onclick="setStatus(10, 'Behoben')">Behoben</button><button type="button" class="st-btn" id="cp_10_nv" onclick="setStatus(10, 'n. v.')">n. v.</button></div></div>
+<div class="cp-row"><div class="cp-label">12. Bodenschwelle &amp; Bodendichtung</div><div class="cp-btns"><button type="button" class="st-btn" id="cp_11_ok" onclick="setStatus(11, 'OK')">OK</button><button type="button" class="st-btn" id="cp_11_mgl" onclick="setStatus(11, 'Mgl.')">Mgl.</button><button type="button" class="st-btn" id="cp_11_done" onclick="setStatus(11, 'Behoben')">Behoben</button><button type="button" class="st-btn" id="cp_11_nv" onclick="setStatus(11, 'n. v.')">n. v.</button></div></div>
+
     </div>
   </div>
 
+<div class="card"><div class="section-title">Durchgeführte Wartungsarbeiten</div><label class="repair-toggle"><input type="checkbox" data-work="Beschläge geschmiert" onchange="toggleWork(this.dataset.work,this.checked)"> Beschläge geschmiert</label><label class="repair-toggle"><input type="checkbox" data-work="Flügel eingestellt" onchange="toggleWork(this.dataset.work,this.checked)"> Flügel eingestellt</label><label class="repair-toggle"><input type="checkbox" data-work="Anpressdruck eingestellt" onchange="toggleWork(this.dataset.work,this.checked)"> Anpressdruck eingestellt</label><label class="repair-toggle"><input type="checkbox" data-work="Schrauben nachgezogen" onchange="toggleWork(this.dataset.work,this.checked)"> Schrauben nachgezogen</label><label class="repair-toggle"><input type="checkbox" data-work="Dichtungen gepflegt" onchange="toggleWork(this.dataset.work,this.checked)"> Dichtungen gepflegt</label><label class="repair-toggle"><input type="checkbox" data-work="Entwässerung gereinigt" onchange="toggleWork(this.dataset.work,this.checked)"> Entwässerung gereinigt</label><label class="repair-toggle"><input type="checkbox" data-work="Kleinreparatur durchgeführt" onchange="toggleWork(this.dataset.work,this.checked)"> Kleinreparatur durchgeführt</label></div>
   <div class="card">
     <div class="section-head"><div class="section-title">4. Gesamtbewertung / Mängelstufe</div></div>
     <div class="severity-options" id="severityOptions">
@@ -675,22 +693,19 @@
     </div>
   </div>
 
-  <div class="card">
-    <div class="section-head"><div class="section-title">5. Reparatur im Zuge der Wartung</div></div>
-    <label class="repair-toggle"><input type="checkbox" id="i_repairDone" onchange="setRepairDone(this.checked)"> <span>☑ Mangel gleich behoben / Reparatur erledigt</span></label>
-    <div class="repair-hint" id="repairHint">Bei sofortiger Behebung anhaken. Die ursprüngliche Mängelbewertung bleibt erhalten.</div>
+
   </div>
 
   <div class="card">
     <div class="notes-header">
-      <div class="section-title" style="margin:0;">6. Zusatz / Bemerkungen / Mängelbeschreibung</div>
+      <div class="section-title" style="margin:0;">5. Zusatz / Bemerkungen</div>
       <button type="button" class="mic-btn" id="micBtn" onclick="toggleDictation()">🎤 Diktieren</button>
     </div>
     <div class="field">
       <textarea id="i_bemerkung" rows="3" placeholder="Freitext oder per Mikrofon einsprechen..." oninput="saveCurrentField('bemerkung', this.value)"></textarea>
     </div>
 
-    <div class="section-title" style="margin-top:12px;">7. Fotodokumentation (max. 2 Fotos pro Fenster)</div>
+    <div class="section-title" style="margin-top:12px;">6. Fotodokumentation (max. 2 Fotos pro Fenster)</div>
     <div class="photo-grid">
       <div class="photo-box">
         <div style="font-size:11px; font-weight:700; color:#64748b;">Foto 1 (Übersicht / Fenster)</div>
@@ -714,14 +729,14 @@
 
 <div class="bottom-nav">
   <button type="button" class="nav-btn" onclick="prevItem()">◀ Vorherige</button>
-  <button type="button" class="nav-center" id="navCenterBtn" onclick="openOverview()"># 001 / 160</button>
+  <button type="button" class="nav-center" id="navCenterBtn" onclick="openOverview()"># 001 / 100</button>
   <button type="button" class="nav-btn" onclick="nextItem()">Nächstes Fenster ▶</button>
 </div>
 
 <div class="modal-bg" id="overviewModal" onclick="if(event.target===this) closeOverview()">
   <div class="modal-box">
     <div style="display:flex; justify-content:space-between; align-items:center;">
-      <strong style="font-size:15px; color:var(--navy);">Gesamtübersicht (1–160)</strong>
+      <strong style="font-size:15px; color:var(--navy);">Gesamtübersicht</strong>
       <button type="button" class="tool-btn red" onclick="closeOverview()">Schließen ✕</button>
     </div>
     <div style="font-size:12px; color:#475569; margin-top:6px;">Grün = Alle OK | Rot = Mangel | Gelb = Teilweise | Grau = Offen</div>
@@ -744,16 +759,16 @@ function pdfPruefmonat(value) {
   return months[Number(match[2])-1] + ' ' + match[1];
 }
 
-const TOTAL_ITEMS = 160;
+let TOTAL_ITEMS = 100;
 const UNIT_SINGULAR = "Fenster";
 const UNIT_PLURAL = "Fenster";
 const UNIT_UPPER = "FENSTER";
 const DB_PREFIX = "fenster_live";
 const LOCAL_KEY_BASE = "Wartung_Fenster_Live_Offline_v1";
-const CHECKPOINTS = ['1. Flügel & Blendrahmen (Verzug, Gängigkeit, abgemorscht / Fäulnis)', '2. Beschläge & Scherenlager (Schmierung, Leichtgängigkeit, Verschleiß)', '3. Verriegelung & Schließbleche (Anpressdruck, Pilzköpfe, Eckumlenkung)', '4. Fenstergriff / Olive & Getriebe (fester Sitz, Rastung, Sperre)', '5. Dichtungen (Flügel- & Rahmendichtung elastisch, rissfrei, anliegend)', '6. Verglasung & Glasleisten (Risse, Blindheit/Kondensat, Versiegelung)', '7. Entwässerung & Fensterbank (Entwässerungsschlitze frei, Anschluss dicht)'];
+const CHECKPOINTS = ['1. Flügel & Blendrahmen (Verzug, Gängigkeit, abgemorscht / Fäulnis)', '2. Beschläge & Scherenlager (Schmierung, Leichtgängigkeit, Verschleiß)', '3. Verriegelung & Schließbleche (Anpressdruck, Pilzköpfe, Eckumlenkung)', '4. Fenstergriff / Olive & Getriebe (fester Sitz, Rastung, Sperre)', '5. Dichtungen (Flügel- & Rahmendichtung elastisch, rissfrei, anliegend)', '6. Verglasung & Glasleisten (Risse, Blindheit/Kondensat, Versiegelung)', '7. Entwässerung & Fensterbank (Entwässerungsschlitze frei, Anschluss dicht)', "8. Öffnungsbegrenzer & Kindersicherung", "9. Flügelsicherung & Befestigung", "10. Bauanschluss & Anschlussfugen", "11. Oberflächen & Witterungsschutz", "12. Bodenschwelle & Bodendichtung"];
 
 let currentIndex = 1;
-let projectCode = localStorage.getItem(LOCAL_KEY_BASE + "_code") || "PROJ-260001";
+let projectCode = "TEST-260001";
 let state = {
   global: {
     objekt: "",
@@ -790,11 +805,15 @@ function getDefaultItem(idx) {
     raum: "",
     t1: "",
     t2: "",
+    surfaceInside: "",
+    surfaceOutside: "",
     defects: [],
+    issues: {},
     severity: "",
     repairDone: false,
     repairDate: "",
-    cp: ["", "", "", "", "", "", ""],
+    cp: Array(12).fill(""),
+    works: [],
     bemerkung: "",
     photo1: "",
     photo2: "",
@@ -806,79 +825,39 @@ function getItem(idx) {
   if (!state.items[idx]) {
     state.items[idx] = getDefaultItem(idx);
   }
-  return state.items[idx];
+  const item = state.items[idx];
+  item.cp = Array.from({length:12},(_,i)=> (item.cp || [])[i] || "");
+  if (!Array.isArray(item.works)) item.works=[];
+  return item;
 }
 
-function getLocalStorageKey() {
-  return LOCAL_KEY_BASE + "_" + projectCode;
+const dbPromise = new Promise((resolve,reject)=>{
+  const req = indexedDB.open("Hoellerer_Fenster_PWA_Test_v2_v1",1);
+  req.onupgradeneeded=()=>req.result.createObjectStore("projects");
+  req.onsuccess=()=>resolve(req.result);
+  req.onerror=()=>reject(req.error);
+});
+let pending=Promise.resolve(), saveVersion=0, failed=false;
+function freshState(){return {global:{objekt:"",next:"lt. Gesetzgeber (jährlich)",pruefer:"",kuerzel:"",datum:getTodayStr()},items:{},totalItems:100};}
+function setConnStatus(ok,text){document.getElementById("connDot").className="dot "+(ok?"online":"offline");document.getElementById("connText").textContent=text;}
+async function readProject(code){const db=await dbPromise;return new Promise((resolve,reject)=>{const r=db.transaction("projects").objectStore("projects").get(code);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
+function applyState(data){state=data||freshState();TOTAL_ITEMS=Math.max(1,Number(state.totalItems)||100,...Object.keys(state.items).map(Number));currentIndex=1;renderGlobal();renderCurrentItem();}
+function pushToCloud(){
+  state.totalItems=TOTAL_ITEMS;
+  const code=projectCode, snapshot=structuredClone(state), version=++saveVersion;
+  setConnStatus(false,"Speichert lokal …");
+  pending=pending.catch(()=>{}).then(async()=>{const db=await dbPromise;await new Promise((resolve,reject)=>{const tx=db.transaction("projects","readwrite");tx.objectStore("projects").put(snapshot,code);tx.oncomplete=resolve;tx.onabort=tx.onerror=()=>reject(tx.error);});if(version===saveVersion){failed=false;setConnStatus(true,"Lokal gespeichert · TEST");}}).catch(err=>{failed=true;setConnStatus(false,"Speicherfehler – Backup sichern!");console.error(err);});
+  return pending;
 }
-
-function loadFromLocal() {
-  try {
-    const raw = localStorage.getItem(getLocalStorageKey());
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      state.global = Object.assign({
-        objekt: "",
-        next: "lt. Gesetzgeber (jährlich)",
-        pruefer: "",
-        kuerzel: "",
-        datum: getTodayStr()
-      }, parsed.global || {});
-      state.items = parsed.items || {};
-    } else {
-      state = {
-        global: {
-          objekt: "",
-          next: "lt. Gesetzgeber (jährlich)",
-          pruefer: "",
-          kuerzel: "",
-          datum: getTodayStr()
-        },
-        items: {}
-      };
-    }
-  } catch (e) {
-    console.warn("Local load error", e);
-  }
-}
-
-function saveToLocal() {
-  try {
-    localStorage.setItem(getLocalStorageKey(), JSON.stringify(state));
-  } catch (e) {
-    console.warn("Local save warning (evtl. Speicher voll)", e);
-  }
-}
-
-function setConnStatus(online, text) {
-  const dot = document.getElementById("connDot");
-  const txt = document.getElementById("connText");
-  if (dot) {
-    dot.className = "dot " + (online ? "online" : "offline");
-  }
-  if (txt) {
-    txt.textContent = text;
-  }
-}
-
-function pushToCloud() {
-  saveToLocal();
-  if (isRemoteUpdate) return;
-  if (firebaseReady && fbDb && navigator.onLine) {
-    try {
-      fbDb.ref(DB_PREFIX + "/" + projectCode).set(state);
-      syncQueue = false;
-    } catch (e) {
-      syncQueue = true;
-    }
-  } else {
-    syncQueue = true;
-    setConnStatus(false, "Offline (lokal gespeichert)");
-  }
-}
+function changeCount(){const raw=prompt("Fensteranzahl (1–500):",TOTAL_ITEMS);if(raw===null)return;const n=Number(raw);if(!Number.isInteger(n)||n<1||n>500){alert("Bitte eine ganze Zahl von 1 bis 500 eingeben.");return;}if(Object.keys(state.items).some(k=>Number(k)>n)){alert("Oberhalb dieser Anzahl existieren Datensätze. Keine Reduzierung möglich.");return;}TOTAL_ITEMS=n;currentIndex=Math.min(currentIndex,n);renderCurrentItem();pushToCloud();}
+window.addEventListener("beforeunload",e=>{if(failed||document.getElementById("connText").textContent.includes("Speichert lokal")){e.preventDefault();e.returnValue="";}});
 
 function renderGlobal() {
+  document.getElementById("g_company").value = state.global.company || "";
+  document.getElementById("g_street").value = state.global.street || "";
+  document.getElementById("g_zip").value = state.global.zip || "";
+  document.getElementById("g_city").value = state.global.city || "";
+
   document.getElementById("g_objekt").value = state.global.objekt || "";
   document.getElementById("g_next").value = state.global.next || "lt. Gesetzgeber (jährlich)";
   document.getElementById("g_pruefer").value = state.global.pruefer || "";
@@ -912,15 +891,15 @@ function renderCurrentItem() {
   document.querySelectorAll('#chips_t2 .chip-btn').forEach(btn => {
     btn.classList.toggle('active', btn.textContent === item.t2);
   });
-  const defs = Array.isArray(item.defects) ? item.defects : [];
-  document.querySelectorAll('#chips_defects .chip-btn').forEach(btn => {
-    btn.classList.toggle('active', defs.includes(btn.textContent));
-  });
+  ["surfaceInside","surfaceOutside"].forEach(group=>document.querySelectorAll("#chips_"+group+" .chip-btn").forEach(btn=>btn.classList.toggle("active",btn.textContent===item[group])));
 
-  for (let i = 0; i < 7; i++) {
+
+  document.querySelectorAll("[data-work]").forEach(el=>el.checked=(item.works||[]).includes(el.dataset.work));
+  for (let i = 0; i < 12; i++) {
     const val = (item.cp && item.cp[i]) ? item.cp[i] : "";
     document.getElementById("cp_" + i + "_ok").className = "st-btn" + (val === "OK" ? " active-ok" : "");
     document.getElementById("cp_" + i + "_mgl").className = "st-btn" + (val === "Mgl." ? " active-mgl" : "");
+    document.getElementById("cp_" + i + "_done").className = "st-btn" + (val === "Behoben" ? " active-done" : "");
     document.getElementById("cp_" + i + "_nv").className = "st-btn" + (val === "n. v." ? " active-nv" : "");
   }
 
@@ -930,10 +909,6 @@ function renderCurrentItem() {
     btn.className = "severity-btn" + (active ? " " + classes[btn.dataset.severity] : "");
     btn.setAttribute("aria-pressed", String(active));
   });
-  document.getElementById("i_repairDone").checked = item.repairDone === true;
-  document.getElementById("repairHint").textContent = item.repairDone
-    ? "✓ Reparatur erledigt am " + (item.repairDate || "Datum nicht erfasst") + ". Ursprünglicher Mangel bleibt dokumentiert."
-    : "Bei sofortiger Behebung anhaken. Die ursprüngliche Mängelbewertung bleibt erhalten.";
   renderPhotoPreview(1, item.photo1);
   renderPhotoPreview(2, item.photo2);
   updateProgressBadge();
@@ -958,6 +933,11 @@ function updateProgressBadge() {
 }
 
 function saveGlobal() {
+  state.global.company = document.getElementById("g_company").value;
+  state.global.street = document.getElementById("g_street").value;
+  state.global.zip = document.getElementById("g_zip").value;
+  state.global.city = document.getElementById("g_city").value;
+
   state.global.objekt = document.getElementById("g_objekt").value;
   state.global.next = document.getElementById("g_next").value;
   state.global.pruefer = document.getElementById("g_pruefer").value;
@@ -987,6 +967,12 @@ function toggleChip(group, val) {
   pushToCloud();
 }
 
+function issueRows(it){return (it.cp||[]).flatMap((v,i)=>{if(v!=="Mgl."&&v!=="Behoben")return [];const a=(it.issues||{})[i]||[];return [{text:CHECKPOINTS[i].replace(/^\d+\. /,""),done:v==="Behoben",date:a.map(x=>x.date||"").sort().pop()||"",point:i}];});}
+function issueText(x){return (x.point+1)+". "+x.text+" – "+(x.done?"IM ZUGE DER WARTUNG BEHOBEN":"OFFEN");}
+function syncIssues(it){const rows=issueRows(it);it.defects=rows.map(issueText);it.repairDone=rows.length>0&&rows.every(x=>x.done);it.repairDate="";}
+
+
+
 function toggleMultiChip(val) {
   const item = getItem(currentIndex);
   if (!Array.isArray(item.defects)) item.defects = [];
@@ -998,10 +984,16 @@ function toggleMultiChip(val) {
   pushToCloud();
 }
 
+function toggleWork(work,checked){const item=getItem(currentIndex);item.works=checked?[...new Set([...item.works,work])]:item.works.filter(w=>w!==work);markEditor(item);pushToCloud();}
 function setStatus(cpIdx, status) {
   const item = getItem(currentIndex);
-  if (!Array.isArray(item.cp)) item.cp = ["", "", "", "", "", "", ""];
-  item.cp[cpIdx] = (item.cp[cpIdx] === status) ? "" : status;
+  if (!Array.isArray(item.cp)) item.cp = Array(12).fill("");
+  const previous = item.cp[cpIdx];
+  item.cp[cpIdx] = previous === status ? "" : status;
+  item.issues ||= {};
+  if(item.cp[cpIdx]==="Behoben") item.issues[cpIdx]=[{text:CHECKPOINTS[cpIdx],done:true,date:""}];
+  else delete item.issues[cpIdx];
+  syncIssues(item);
   markEditor(item);
   renderCurrentItem();
   pushToCloud();
@@ -1020,7 +1012,7 @@ function setSeverity(value) {
 function setRepairDone(checked) {
   const item = getItem(currentIndex);
   item.repairDone = checked === true;
-  item.repairDate = checked ? (item.repairDate || getTodayStr()) : "";
+  item.repairDate = "";
   markEditor(item);
   renderCurrentItem();
   pushToCloud();
@@ -1028,7 +1020,10 @@ function setRepairDone(checked) {
 
 function setAllOK() {
   const item = getItem(currentIndex);
-  item.cp = ["OK", "OK", "OK", "OK", "OK", "OK", "OK"];
+  if (!confirm("Alle 12 Prüfpunkte tatsächlich geprüft und in Ordnung?")) return;
+  if(issueRows(item).length){alert("Bitte vorhandene Mängel einzeln prüfen und entfernen.");return;}
+  item.cp = Array(12).fill("OK");
+  syncIssues(item);
   markEditor(item);
   renderCurrentItem();
   pushToCloud();
@@ -1068,7 +1063,7 @@ function openOverview() {
       const hasMgl = it.cp.includes("Mgl.") || (Array.isArray(it.defects) && it.defects.length > 0) || ["Leichter Mangel", "Schwerer Mangel", "Gefahr in Verzug"].includes(it.severity);
       const filled = it.cp.filter(v => v !== "").length;
       if (hasMgl) cls += " mgl";
-      else if (filled === 7 || it.severity === "Keine Mängel") cls += " ok";
+      else if (filled === 12) cls += " ok";
       else if (filled > 0) cls += " part";
     }
     html += '<div class="' + cls + '" onclick="goToItem(' + i + ')">#' + pad3(i) + '</div>';
@@ -1084,12 +1079,13 @@ function closeOverview() {
 function handlePhoto(num, ev) {
   const file = ev.target.files[0];
   if (!file) return;
+  const targetIndex=currentIndex, targetCode=projectCode;
   const reader = new FileReader();
   reader.onload = function(e) {
     const img = new Image();
     img.onload = function() {
       const canvas = document.createElement("canvas");
-      const maxDim = 900;
+      const maxDim = 850;
       let w = img.width;
       let h = img.height;
       if (w > maxDim || h > maxDim) {
@@ -1100,8 +1096,9 @@ function handlePhoto(num, ev) {
       canvas.height = h;
       const ctx = canvas.getContext("2d");
       ctx.drawImage(img, 0, 0, w, h);
-      const compressed = canvas.toDataURL("image/jpeg", 0.72);
-      const item = getItem(currentIndex);
+      const compressed = canvas.toDataURL("image/jpeg", 0.68);
+      if(projectCode!==targetCode){alert("Baustelle gewechselt – Foto bitte erneut aufnehmen.");return;}
+      const item = getItem(targetIndex);
       item["photo" + num] = compressed;
       markEditor(item);
       renderCurrentItem();
@@ -1168,33 +1165,14 @@ function toggleDictation() {
 }
 
 function downloadBackup() {
-  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const blob = new Blob([JSON.stringify({...state, projectCode, totalItems:TOTAL_ITEMS}, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = "Backup_" + UNIT_PLURAL + "_" + projectCode + "_" + getTodayStr() + ".json";
   a.click();
 }
 
-function loadBackup(ev) {
-  const file = ev.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const parsed = JSON.parse(e.target.result);
-      if (parsed && parsed.items) {
-        state = parsed;
-        renderGlobal();
-        renderCurrentItem();
-        pushToCloud();
-        alert("Backup erfolgreich geladen!");
-      }
-    } catch (err) {
-      alert("Ungültige Backup-Datei.");
-    }
-  };
-  reader.readAsText(file);
-}
+async function loadBackup(ev){const file=ev.target.files[0];ev.target.value="";if(!file)return;try{const parsed=JSON.parse(await file.text());if(!parsed.global||!parsed.items||typeof parsed.items!=="object"||Array.isArray(parsed.items)||Object.keys(parsed.items).some(k=>!/^\d+$/.test(k)||Number(k)<1||Number(k)>500))throw Error("Format");const code=parsed.projectCode;if(code&&code!==projectCode){alert("Backup gehört zu "+code+". Bitte zuerst diese Projektnummer öffnen.");return;}if(!confirm((code?"Backup-Code: "+code:"Altes Backup ohne gespeicherten Projektcode. Bitte Dateiname und Objekt prüfen!")+"\nObjekt: "+(parsed.global.objekt||"–")+"\nAktuelle Testbaustelle "+projectCode+" vollständig ersetzen? Vorher Backup sichern!"))return;applyState(parsed);await pushToCloud();if(!failed)alert("Backup lokal gespeichert.");}catch(e){alert("Ungültiges Fenster-Backup.");}}
 
 function resetProject() {
   const enteredCode = prompt("Sicherheitscode eingeben, um die Baustelle zu leeren:");
@@ -1204,7 +1182,7 @@ function resetProject() {
     return;
   }
   if (!confirm("Vor dem Löschen bitte 'Backup sichern' verwenden.\n\nWirklich fortfahren?")) return;
-  if (!confirm("Wirklich alle 160 " + UNIT_PLURAL + " für Code '" + projectCode + "' leeren?")) return;
+  if (!confirm("Wirklich alle " + TOTAL_ITEMS + " " + UNIT_PLURAL + " für Code '" + projectCode + "' leeren?")) return;
   state = {
     global: {
       objekt: "",
@@ -1222,11 +1200,12 @@ function resetProject() {
 }
 
 function exportExcel() {
-  let csv = "\uFEFFNr;Geschoss;Raum;Typ 1;Typ 2;Maengel;Gesamtbewertung;Reparatur erledigt;Reparaturdatum;P1;P2;P3;P4;P5;P6;P7;Bemerkung;Pruefer;Datum\n";
+  let csv = "\uFEFFNr;Geschoss;Raum;Typ 1;Typ 2;Oberfläche innen;Oberfläche außen;Maengel;Gesamtbewertung;Reparatur erledigt;P1;P2;P3;P4;P5;P6;P7;P8;P9;P10;P11;P12;Wartungsarbeiten;Bemerkung;Pruefer;Datum\n";
   for (let i = 1; i <= TOTAL_ITEMS; i++) {
     const it = state.items[i];
     if (!it) continue;
-    const hasData = (it.cp && it.cp.some(v => v !== "")) || it.bemerkung || it.geschoss || it.raum || it.severity;
+    syncIssues(it);
+    const hasData = (it.cp && it.cp.some(v => v !== "")) || (it.works||[]).length || it.bemerkung || it.geschoss || it.raum || it.t1 || it.t2 || it.surfaceInside || it.surfaceOutside || it.severity;
     if (!hasData) continue;
     const row = [
       it.nr || (UNIT_SINGULAR + " " + pad3(i)),
@@ -1234,11 +1213,13 @@ function exportExcel() {
       it.raum || "",
       it.t1 || "",
       it.t2 || "",
+      it.surfaceInside || "",
+      it.surfaceOutside || "",
       (it.defects || []).join(", "),
       it.severity || "",
-      it.repairDone ? "Ja" : "Nein",
-      it.repairDone ? (it.repairDate || "") : "",
-      ...(it.cp || ["","","","","","",""]),
+      it.repairDone ? "Ja" : issueRows(it).some(x=>x.done) ? "Teilweise" : "Nein",
+      ...Array.from({length:12},(_,i)=>(it.cp||[])[i]||""),
+      (it.works||[]).join(", "),
       (it.bemerkung || "").replace(/[\r\n;]+/g, " "),
       it.editor || state.global.pruefer || "",
       state.global.datum || ""
@@ -1266,6 +1247,7 @@ function printDefectsList(onlyOpen = false) {
   for (let i = 1; i <= TOTAL_ITEMS; i++) {
     const it = state.items[i];
     if (!it) continue;
+    syncIssues(it);
     const cp = Array.isArray(it.cp) ? it.cp : [];
     const defects = Array.isArray(it.defects) ? it.defects : [];
     const severity = it.severity || "";
@@ -1275,8 +1257,8 @@ function printDefectsList(onlyOpen = false) {
     const failedChecks = CHECKPOINTS.filter((_, c) => cp[c] === "Mgl.")
       .map(label => label.replace(/^\d+\.\s*/, "").replace(/\s*\([^)]*\)$/, ""));
     const descriptions = [];
-    if (defects.length) descriptions.push(defects.join(", "));
-    if (failedChecks.length) descriptions.push("Prüfpunkte mit Mangel: " + failedChecks.join(", "));
+    if (defects.length) descriptions.push(issueRows(it).filter(x=>!onlyOpen||!x.done).map(issueText).join("\n"));
+    if (!defects.length && failedChecks.length) descriptions.push("Prüfpunkte mit Mangel: " + failedChecks.join(", "));
     if (it.bemerkung && it.bemerkung.trim()) descriptions.push("Bemerkung: " + it.bemerkung.trim());
     matches.push({index:i, item:it, severity, description:descriptions.join("\n") || "Mangel festgestellt (keine Beschreibung)"});
   }
@@ -1291,14 +1273,14 @@ function printDefectsList(onlyOpen = false) {
     const it = m.item;
     const level = ["Leichter Mangel","Schwerer Mangel","Gefahr in Verzug"].includes(m.severity)
       ? m.severity : "Mangel (ohne Stufe)";
-    return `<tr><td><b>#${pad3(m.index)}</b><div>${e(it.nr || UNIT_SINGULAR + " " + pad3(m.index))}</div></td>` +
+    return `<tr><td><b>${e(it.nr && it.nr !== UNIT_SINGULAR + " " + pad3(m.index) ? it.nr : "–")}</b></td>` +
       `<td>${e(it.geschoss || "–")}<div>${e(it.raum || "–")}</div></td>` +
       `<td><span class="defect-level ${levelClass[m.severity] || "other"}">${e(level)}</span></td>` +
-      `<td>${e(m.description)}<div class="repair-list-state">${it.repairDone ? "✓ BEHOBEN" + (it.repairDate ? " am " + e(it.repairDate) : "") : "○ OFFEN"}</div></td></tr>`;
+      `<td>${e(m.description)}<div class="repair-list-state">${it.repairDone ? "✓ IM ZUGE DER WARTUNG BEHOBEN" : issueRows(it).some(x=>x.done) && !onlyOpen ? "TEILWEISE BEHOBEN" : "○ OFFEN"}</div></td></tr>`;
   }).join("");
   document.getElementById("printArea").innerHTML = `<div class="defect-list-page">
     <div class="defect-list-head"><div class="defect-list-title">${onlyOpen ? "OFFENE REPARATUREN" : "MÄNGELLISTE"} – FENSTER &amp; FENSTERTÜREN</div>
-    <div class="defect-list-company"><b>Tischlerei Höllerer GmbH</b> · St.Leonhard 149 · 3572 St.Leonhard/Hw</div></div>
+    <div class="defect-list-company"><b>${e(state.global.company || "–")}</b>${state.global.street ? " · " + e(state.global.street) : ""}${state.global.zip || state.global.city ? " · " + e([state.global.zip,state.global.city].filter(Boolean).join(" ")) : ""}</div></div>
     <div class="defect-list-meta"><div><b>Objekt / Baustelle:</b> ${e(state.global.objekt || "–")}</div>
     <div><b>Prüfdatum:</b> ${e(pdfPruefmonat(state.global.datum))}</div>
     <div><b>Prüfer:</b> ${e(state.global.pruefer || "–")}</div>
@@ -1321,23 +1303,24 @@ function printAllPDF() {
   for (let i = 1; i <= TOTAL_ITEMS; i++) {
     const it = state.items[i];
     if (!it) continue;
-    const hasData = (it.cp && it.cp.some(v => v !== "")) || it.bemerkung || it.photo1 || it.photo2 ||
-      (it.defects && it.defects.length) || it.severity || it.repairDone || it.geschoss || it.raum || it.t1 || it.t2 ||
+    syncIssues(it);
+    const hasData = (it.cp && it.cp.some(v => v !== "")) || (it.works||[]).length || it.bemerkung || it.photo1 || it.photo2 ||
+      (it.defects && it.defects.length) || it.severity || it.repairDone || it.geschoss || it.raum || it.t1 || it.t2 || it.surfaceInside || it.surfaceOutside ||
       (it.nr && it.nr !== UNIT_SINGULAR + " " + pad3(i));
     if (!hasData) continue;
     count++;
     const cp = Array.isArray(it.cp) ? it.cp : [];
     const defects = Array.isArray(it.defects) ? it.defects : [];
-    const hasMgl = cp.includes("Mgl.") || defects.length > 0;
-    const allDone = cp.length >= 7 && cp.slice(0, 7).every(v => v !== "");
+    const hasMgl = cp.includes("Mgl.");
+    const allDone = CHECKPOINTS.every((_,i) => ["OK","Mgl.","Behoben","n. v."].includes(cp[i]));
     const severityClasses = {"Keine Mängel":"ok", "Leichter Mangel":"light", "Schwerer Mangel":"heavy", "Gefahr in Verzug":"danger"};
     const selectedSeverity = Object.prototype.hasOwnProperty.call(severityClasses, it.severity) ? it.severity : "";
-    const rating = selectedSeverity || (hasMgl ? "MÄNGEL FESTGESTELLT" : allDone ? "IN ORDNUNG" : "PRÜFUNG UNVOLLSTÄNDIG");
-    const ratingClass = selectedSeverity ? severityClasses[selectedSeverity] : hasMgl ? "mgl" : allDone ? "ok" : "open";
+    const rating = (!allDone && selectedSeverity === "Keine Mängel" ? "PRÜFUNG UNVOLLSTÄNDIG" : selectedSeverity) || (hasMgl ? "MÄNGEL FESTGESTELLT" : allDone ? (cp.includes("Behoben") ? "MÄNGEL BEHOBEN" : "IN ORDNUNG") : "PRÜFUNG UNVOLLSTÄNDIG");
+    const ratingClass = (!allDone && selectedSeverity === "Keine Mängel") ? "open" : selectedSeverity ? severityClasses[selectedSeverity] : hasMgl ? "mgl" : allDone ? "ok" : "open";
     let checks = "";
-    for (let c = 0; c < 7; c++) {
+    for (let c = 0; c < 12; c++) {
       const v = cp[c] || "–";
-      const cls = v === "OK" ? "ok" : v === "Mgl." ? "mgl" : v === "n. v." ? "nv" : "open";
+      const cls = v === "OK" ? "ok" : v === "Mgl." ? "mgl" : v === "Behoben" ? "done" : v === "n. v." ? "nv" : "open";
       checks += `<div class="report-check ${cls}"><div class="report-check-label">${e(CHECKPOINTS[c])}</div><div class="report-check-status">${e(v)}</div></div>`;
     }
     const photo = (num, data, label) => {
@@ -1345,30 +1328,31 @@ function printAllPDF() {
       const safeSrc = typeof data === "string" && /^data:image\/(?:jpeg|png|webp);base64,[a-zA-Z0-9+/=]+$/.test(data) ? data : "";
       return `<div class="report-photo"><div class="report-photo-label">${label}</div><div class="report-photo-frame">${safeSrc ? `<img src="${safeSrc}" alt="${label}">` : "Kein Foto vorhanden"}</div></div>`;
     };
-    const defectsHtml = defects.length ? `<span class="defects">Schäden: ${e(defects.join(", "))}</span>\n` : "";
+    const defectsHtml = [false,true].map(done=>{const rows=issueRows(it).filter(x=>x.done===done);return rows.length?`<div style="color:${done?'#166534':'#991b1b'};border:1px solid currentColor;padding:3px;margin:2px 0"><b>${done?'Im Zuge der Wartung behobene Mängel':'Offene Mängel'}:</b> ${e(rows.map(issueText).join('; '))}</div>`:'';}).join('');
     html += `<section class="report-page">
       <div class="report-top">
         <div class="report-header">
           <div><div class="report-title">WARTUNGSPROTOKOLL<br>FENSTER &amp; FENSTERTÜREN</div>
-            <div class="report-company"><b>Tischlerei Höllerer GmbH</b> · St.Leonhard 149 · 3572 St.Leonhard/Hw</div></div>
-          <div class="report-number">FENSTER #${pad3(i)}</div>
+            <div class="report-company"><b>${e(state.global.company || "–")}</b>${state.global.street ? " · " + e(state.global.street) : ""}${state.global.zip || state.global.city ? " · " + e([state.global.zip,state.global.city].filter(Boolean).join(" ")) : ""}</div></div>
         </div>
         <div class="report-meta"><div class="report-section-title">Objekt- &amp; Fensterdaten</div>
           <div class="report-meta-grid">
             <div class="report-meta-line"><b>Objekt / Baustelle:</b> ${e(state.global.objekt || "–")}</div>
+            <div class="report-meta-line"><b>Baustellen-Code:</b> ${e(projectCode)}</div>
             <div class="report-meta-line"><b>Prüfdatum:</b> ${e(pdfPruefmonat(state.global.datum))}</div>
-            <div class="report-meta-line"><b>Fenster-Nr.:</b> ${e(it.nr || UNIT_SINGULAR + " " + pad3(i))}</div>
+            <div class="report-meta-line"><b>Fenster-Nr.:</b> ${e(it.nr && it.nr !== UNIT_SINGULAR + " " + pad3(i) ? it.nr : "–")}</div>
             <div class="report-meta-line"><b>Geschoss / Stiege:</b> ${e(it.geschoss || "–")}</div>
             <div class="report-meta-line"><b>Raum / Top / Lage:</b> ${e(it.raum || "–")}</div>
             <div class="report-meta-line"><b>Material:</b> ${e(it.t1 || "–")}</div>
             <div class="report-meta-line"><b>Öffnungsart:</b> ${e(it.t2 || "–")}</div>
+            <div class="report-meta-line"><b>Oberfläche innen:</b> ${e(it.surfaceInside || "–")} · <b>außen:</b> ${e(it.surfaceOutside || "–")}</div>
           </div>
         </div>
         <div class="report-checks"><div class="report-check-title">Funktions- &amp; Sichtprüfung</div>${checks}</div>
+        ${(it.works||[]).length ? `<div class="report-work"><b>Durchgeführte Wartungsarbeiten:</b> ${e(it.works.join(", "))}</div>` : ""}
         <div class="report-finding">
           <div class="report-finding-head"><span>BEFUND &amp; GESAMTBEWERTUNG</span><span class="report-rating ${ratingClass}">${rating}</span></div>
           <div class="report-finding-body">${defectsHtml}${e(it.bemerkung || (defects.length ? "" : "Keine zusätzlichen Bemerkungen."))}</div>
-          ${it.repairDone ? `<div class="report-repair-done">✓ MANGEL IM ZUGE DER WARTUNG BEHOBEN${it.repairDate ? " · " + e(it.repairDate) : ""}</div>` : ""}
           <div class="report-finding-foot"><span><b>Prüfer:</b> ${e(it.editor || state.global.pruefer || "–")}</span><span><b>Nächste Prüfung:</b> ${e(state.global.next || "–")}</span></div>
         </div>
       </div>
@@ -1392,98 +1376,13 @@ function printAllPDF() {
   });
 }
 
-function changeProjectCode() {
-  const val = document.getElementById("projectCode").value.trim().toUpperCase();
-  if (!val) return;
-  projectCode = val;
-  localStorage.setItem(LOCAL_KEY_BASE + "_code", projectCode);
-  loadFromLocal();
-  renderGlobal();
-  renderCurrentItem();
-  attachFirebaseListener();
-}
-
-function attachFirebaseListener() {
-  if (!firebaseReady || !fbDb) return;
-  if (fbRef) fbRef.off();
-  fbRef = fbDb.ref(DB_PREFIX + "/" + projectCode);
-  fbRef.on("value", function(snap) {
-    const remote = snap.val();
-    if (remote) {
-      isRemoteUpdate = true;
-      state.global = Object.assign(state.global, remote.global || {});
-      state.items = remote.items || {};
-      saveToLocal();
-      renderGlobal();
-      renderCurrentItem();
-      isRemoteUpdate = false;
-    }
-    setConnStatus(true, "Live verbunden");
-  }, function() {
-    setConnStatus(false, "Offline (speichert lokal)");
-  });
-}
-
-function initFirebaseAsync() {
-  if (!navigator.onLine) {
-    setConnStatus(false, "Offline (speichert lokal)");
-    return;
-  }
-  const s1 = document.createElement("script");
-  s1.src = "https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js";
-  s1.onload = function() {
-    const s2 = document.createElement("script");
-    s2.src = "https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js";
-    s2.onload = function() {
-      try {
-        const firebaseConfig = {
-          apiKey: "AIzaSyAd_t3mEwgw26xA_dwNvDjD6BSNyyo5NFM",
-          authDomain: "wartung-wien.firebaseapp.com",
-          databaseURL: "https://wartung-wien-default-rtdb.europe-west1.firebasedatabase.app",
-          projectId: "wartung-wien",
-          storageBucket: "wartung-wien.firebasestorage.app",
-          messagingSenderId: "974320255905",
-          appId: "1:974320255905:web:82d550295ff2b0adf581e0"
-        };
-        if (!firebase.apps.length) {
-          firebase.initializeApp(firebaseConfig);
-        }
-        fbDb = firebase.database();
-        firebaseReady = true;
-        if (syncQueue) {
-          fbDb.ref(DB_PREFIX + "/" + projectCode).set(state);
-          syncQueue = false;
-        }
-        attachFirebaseListener();
-      } catch (e) {
-        setConnStatus(false, "Offline (speichert lokal)");
-      }
-    };
-    s2.onerror = function() { setConnStatus(false, "Offline (speichert lokal)"); };
-    document.head.appendChild(s2);
-  };
-  s1.onerror = function() { setConnStatus(false, "Offline (speichert lokal)"); };
-  document.head.appendChild(s1);
-}
-
-window.addEventListener("online", function() {
-  if (!firebaseReady) initFirebaseAsync();
-  else if (syncQueue && fbDb) {
-    fbDb.ref(DB_PREFIX + "/" + projectCode).set(state);
-    syncQueue = false;
-    setConnStatus(true, "Live verbunden");
-  }
-});
-
-window.addEventListener("offline", function() {
-  setConnStatus(false, "Offline (speichert lokal)");
-});
-
-document.getElementById("projectCode").value = projectCode;
-loadFromLocal();
-renderGlobal();
-renderCurrentItem();
-initFirebaseAsync();
-</script>
-</body>
-</html>
+async function changeProjectCode(){const input=document.getElementById("projectCode"), val=input.value.trim().toUpperCase();if(!/^[A-Z0-9_-]{1,60}$/.test(val)){input.value=projectCode;alert("Ungültiger Baustellencode.");return;}if(val===projectCode)return;if(!confirm("Testbaustelle wechseln: "+projectCode+" → "+val+"?")){input.value=projectCode;return;}document.body.inert=true;try{await pending;if(failed)throw Error("Speicherfehler");const data=await readProject(val);projectCode=val;input.value=val;applyState(data);try{localStorage.setItem("Hoellerer_Fenster_PWA_Test_v2_code",val);}catch(e){}setConnStatus(true,"Testbaustelle lokal bereit");}catch(e){input.value=projectCode;alert("Wechsel nicht möglich. Backup sichern.");}finally{document.body.inert=false;}}
+(async()=>{document.body.inert=true;try{try{projectCode=localStorage.getItem("Hoellerer_Fenster_PWA_Test_v2_code")||projectCode;}catch(e){}document.getElementById("projectCode").value=projectCode;applyState(await readProject(projectCode));setConnStatus(true,"IndexedDB bereit · TEST");}catch(e){setConnStatus(false,"IndexedDB nicht verfügbar");alert("Lokaler Speicher nicht verfügbar. Bitte Chrome verwenden.");}finally{document.body.inert=false;}})();
+</script><script>
+const panel=document.createElement('div');panel.style.cssText='padding:10px;background:#e2e8f0;color:#0f294a;font:14px sans-serif';panel.innerHTML='<div id="pwaStatus">Offline-Start wird geprüft …</div><div id="storageStatus"></div><div>Cloud-Sync: deaktiviert (Testbetrieb)</div><button id="persistStorage" type="button">Dauerhaften Speicher anfragen</button>';document.body.prepend(panel);
+const style=document.createElement('style');style.textContent='@media print { #pwaStatus, #storageStatus, #persistStorage {display:none!important} }';document.head.append(style);panel.className='pwa-info';style.textContent+=' @media print {.pwa-info{display:none!important}}';
+async function storageInfo(){try{const e=await navigator.storage.estimate();document.getElementById('storageStatus').textContent='Website-Speicher: '+(e.usage/1048576).toFixed(1)+' MB belegt; geschätztes Limit '+(e.quota/1048576).toFixed(0)+' MB';}catch{document.getElementById('storageStatus').textContent='Speicherverbrauch nicht verfügbar';}}
+storageInfo();setInterval(storageInfo,15000);
+document.getElementById('persistStorage').onclick=async()=>{try{alert(await navigator.storage.persist()?'Dauerhafter Speicher gewährt. Backups weiterhin erforderlich.':'Browser hat dauerhaften Speicher nicht gewährt.');}catch{alert('Nicht verfügbar.');}};
+async function offlineStatus(){const el=document.getElementById('pwaStatus');try{if(!('serviceWorker' in navigator))throw Error();await navigator.serviceWorker.register('./sw.js');await navigator.serviceWorker.ready;el.textContent=(navigator.onLine?'Online':'Offline')+' · Offline-Start vorbereitet';}catch{el.textContent='Offline-Start nicht eingerichtet – HTTPS erforderlich';}}offlineStatus();window.addEventListener('online',offlineStatus);window.addEventListener('offline',()=>{document.getElementById('pwaStatus').textContent='Offline · lokale Bearbeitung';});
+</script></body></html>
