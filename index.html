@@ -1185,29 +1185,27 @@ async function resetProject() {
   const enteredCode=prompt("Sicherheitscode eingeben, um die Baustelle zu leeren:");
   if(enteredCode===null)return;
   if(enteredCode.trim()!=="2380"){alert("Falscher Sicherheitscode.");return;}
-  if(!confirm("Vor dem Leeren muss eine neue Sicherung heruntergeladen und kontrolliert werden. Jetzt Sicherung starten?"))return;
   const snapshot=backupPayload();
   if(!downloadBackup())return;
-  const picker=document.createElement("input");picker.type="file";picker.accept=".json,application/json";
-  picker.onchange=async()=>{
-    const file=picker.files[0];if(!file)return;
+  const status=document.getElementById("backupStatus");
+  const btn=document.createElement("button");btn.type="button";btn.className="tool-btn red";
+  btn.textContent="Download vorhanden – Baustelle leeren";
+  const cancel=document.createElement("button");cancel.type="button";cancel.className="tool-btn slate";cancel.textContent="Abbrechen";
+  status.append(document.createElement("br"),document.createTextNode("Bitte Download-Ordner kontrollieren. Erst nach erfolgreichem Download bestätigen."),document.createElement("br"),btn,cancel);
+  cancel.onclick=()=>{btn.remove();cancel.remove();status.textContent="Leeren abgebrochen. Sicherungsdownload bleibt erhalten.";};
+  btn.onclick=async()=>{
+    if(backupPayload()!==snapshot){alert("Wartungsstand geändert. Bitte Baustelle leeren erneut starten.");btn.remove();cancel.remove();return;}
+    if(!confirm("Sicherungsdatei vollständig heruntergeladen und vorhanden? Baustelle "+projectCode+" jetzt unwiderruflich leeren?"))return;
     document.body.inert=true;
+    const old=state,oldIndex=currentIndex;
     try{
-      const saved=JSON.parse(await file.text());
-      if(JSON.stringify(saved)!==snapshot||backupPayload()!==snapshot){alert("Sicherung stimmt nicht mit dem aktuellen Stand überein. Baustelle bleibt erhalten.");return;}
-      if(!confirm("Sicherungsdatei erfolgreich geprüft. Baustelle "+projectCode+" wirklich leeren?"))return;
-      const old=state, oldIndex=currentIndex;
       state={global:{...old.global,objekt:"",datum:getTodayStr()},items:{},totalItems:TOTAL_ITEMS};currentIndex=1;
       await pushToCloud();
       if(failed){state=old;currentIndex=oldIndex;alert("Leeren konnte nicht gespeichert werden. Daten bleiben in der App erhalten.");}
       renderGlobal();renderCurrentItem();
-    }catch(e){alert("Sicherung konnte nicht geprüft werden. Baustelle bleibt erhalten.");}finally{document.body.inert=false;}
+      status.textContent=failed?"Leeren fehlgeschlagen.":"Baustelle geleert. Heruntergeladene Sicherungen bleiben erhalten.";
+    }catch(e){state=old;currentIndex=oldIndex;alert("Fehler beim Leeren. Bitte Daten kontrollieren.");}finally{document.body.inert=false;}
   };
-  alert("Bitte den Download abschließen und danach die gerade gespeicherte JSON-Datei auswählen. Ohne passende Datei wird nichts gelöscht.");
-  // Separate user gesture for file picker on mobile.
-  const btn=document.createElement("button");btn.type="button";btn.textContent="Gesicherte Datei prüfen und Baustelle leeren";btn.className="tool-btn red";
-  const status=document.getElementById("backupStatus");status.append(document.createElement("br"),btn);
-  btn.onclick=()=>picker.click();
 }
 
 function exportExcel() {
